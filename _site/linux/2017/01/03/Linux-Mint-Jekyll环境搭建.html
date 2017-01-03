@@ -6,11 +6,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>裘凯的博客</title>
-  <meta name="description" content="不管是心路历程也好，还是项目经历也好，都写在这里，希望看到自己的成长。">
+  <title>Linux Mint搭建Jekyll环境</title>
+  <meta name="description" content="Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0">
 
   <link rel="stylesheet" href="/assets/main.css">
-  <link rel="canonical" href="/">
+  <link rel="canonical" href="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html">
   <link rel="alternate" type="application/rss+xml" title="裘凯的博客" href="/feed.xml">
   
   
@@ -58,36 +58,72 @@
 
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
-        <div class="home">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
 
-  <h1 class="page-heading">Posts</h1>
-  
-  
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">Linux Mint搭建Jekyll环境</h1>
+    <p class="post-meta"><time datetime="2017-01-03T00:00:00+08:00" itemprop="datePublished">Jan 3, 2017</time></p>
+  </header>
 
+  <div class="post-content" itemprop="articleBody">
+    <p>Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&gt;=2.0</p>
 
-  <ul class="post-list">
-    
-      <li>
-        <span class="post-meta">Jan 3, 2017</span>
-
-        <h2>
-          <a class="post-link" href="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html">Linux Mint搭建Jekyll环境</a>
-        </h2>
-      </li>
-    
-      <li>
-        <span class="post-meta">Jan 2, 2017</span>
-
-        <h2>
-          <a class="post-link" href="/jekyll/update/2017/01/02/welcome-to-jekyll.html">Welcome to Jekyll!</a>
-        </h2>
-      </li>
-    
-  </ul>
-
-  <p class="rss-subscribe">subscribe <a href="/feed.xml">via RSS</a></p>
-
+<p>最终版本信息：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$ ruby -v
+ruby 2.3.3p222 (2016-11-21 revision 56859) [x86_64-linux]
+$ jekyll -v
+jekyll 3.3.1
+</code></pre>
 </div>
+
+<h4 id="安装rvm">安装rvm</h4>
+
+<p>参考这里： http://rvm.io/</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+$ curl -sSL https://get.rvm.io | bash -s stable
+</code></pre>
+</div>
+
+<h4 id="更新ruby">更新ruby</h4>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ rvm install ruby-2.2.0
+</code></pre>
+</div>
+
+<p>一开始安装的时候遇到了apt-get 404错误，于是换了个软件源，把上交的换成了清华的，基础源换成了阿里云的。update一下再执行就好了。</p>
+
+<p>如果太慢看这里： https://ruby-china.org/wiki/ruby-mirror</p>
+
+<h4 id="jekyll安装测试">Jekyll安装测试</h4>
+
+<p>安装参考： http://jekyll.com.cn/docs/installation/</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ gem install jekyll bundler
+</code></pre>
+</div>
+
+<p>测试参考： http://jekyll.com.cn/docs/quickstart/</p>
+
+<blockquote>
+  <p>注意：运行jekyll new myblog的时候说找不到gem jekyll，原因是GEM_HOME没有配置</p>
+</blockquote>
+
+<p>我的系统GEM_HOME设为<code class="highlighter-rouge">.rvm/gems/ruby-2.3.3</code></p>
+
+<p>Could not find gem ‘minima (~&gt; 2.0)’
+Could not find gem ‘jekyll-feed (~&gt; 0.6)’</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ gem install minima jekyll-feed
+</code></pre>
+</div>
+
+<p>然后按照测试参考执行，在浏览器里打开localhost:4000就看到了主页</p>
+
+  </div>
+
+  
+</article>
 
       </div>
     </main>
