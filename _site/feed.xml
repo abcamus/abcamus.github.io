@@ -1,5 +1,57 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.3.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-01-03T10:37:22+08:00</updated><id>//</id><title type="html">裘凯的博客</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
-</subtitle><entry><title type="html">Welcome to Jekyll!</title><link href="/jekyll/update/2017/01/02/welcome-to-jekyll.html" rel="alternate" type="text/html" title="Welcome to Jekyll!" /><published>2017-01-02T21:22:37+08:00</published><updated>2017-01-02T21:22:37+08:00</updated><id>/jekyll/update/2017/01/02/welcome-to-jekyll</id><content type="html" xml:base="/jekyll/update/2017/01/02/welcome-to-jekyll.html">&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.3.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-01-03T10:44:06+08:00</updated><id>//</id><title type="html">裘凯的博客</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+</subtitle><entry><title type="html">Linux Mint搭建Jekyll环境</title><link href="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html" rel="alternate" type="text/html" title="Linux Mint搭建Jekyll环境" /><published>2017-01-03T00:00:00+08:00</published><updated>2017-01-03T00:00:00+08:00</updated><id>/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA</id><content type="html" xml:base="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html">&lt;p&gt;Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0&lt;/p&gt;
+
+&lt;p&gt;最终版本信息：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ruby -v
+ruby 2.3.3p222 (2016-11-21 revision 56859) [x86_64-linux]
+$ jekyll -v
+jekyll 3.3.1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;安装rvm&quot;&gt;安装rvm&lt;/h4&gt;
+
+&lt;p&gt;参考这里： http://rvm.io/&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+$ curl -sSL https://get.rvm.io | bash -s stable
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;更新ruby&quot;&gt;更新ruby&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ rvm install ruby-2.2.0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;一开始安装的时候遇到了apt-get 404错误，于是换了个软件源，把上交的换成了清华的，基础源换成了阿里云的。update一下再执行就好了。&lt;/p&gt;
+
+&lt;p&gt;如果太慢看这里： https://ruby-china.org/wiki/ruby-mirror&lt;/p&gt;
+
+&lt;h4 id=&quot;jekyll安装测试&quot;&gt;Jekyll安装测试&lt;/h4&gt;
+
+&lt;p&gt;安装参考： http://jekyll.com.cn/docs/installation/&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ gem install jekyll bundler
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;测试参考： http://jekyll.com.cn/docs/quickstart/&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;注意：运行jekyll new myblog的时候说找不到gem jekyll，原因是GEM_HOME没有配置&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我的系统GEM_HOME设为&lt;code class=&quot;highlighter-rouge&quot;&gt;.rvm/gems/ruby-2.3.3&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Could not find gem ‘minima (~&amp;gt; 2.0)’
+Could not find gem ‘jekyll-feed (~&amp;gt; 0.6)’&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ gem install minima jekyll-feed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然后按照测试参考执行，在浏览器里打开localhost:4000就看到了主页&lt;/p&gt;</content><summary type="html">Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0</summary></entry><entry><title type="html">Welcome to Jekyll!</title><link href="/jekyll/update/2017/01/02/welcome-to-jekyll.html" rel="alternate" type="text/html" title="Welcome to Jekyll!" /><published>2017-01-02T21:22:37+08:00</published><updated>2017-01-02T21:22:37+08:00</updated><id>/jekyll/update/2017/01/02/welcome-to-jekyll</id><content type="html" xml:base="/jekyll/update/2017/01/02/welcome-to-jekyll.html">&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
 
 &lt;p&gt;To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
 
