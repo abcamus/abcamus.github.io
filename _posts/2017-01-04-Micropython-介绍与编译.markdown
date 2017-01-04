@@ -1,7 +1,7 @@
 ---
 layout:	post
 title:	"Micropython 介绍与编译"
-date:	2017-01-03
+date:	2017-01-04
 categories:	Python
 ---
 micropython是Damien George发明的运行在MCU之上的python，项目主页为
