@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.3.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-01-05T00:05:04+08:00</updated><id>//</id><title type="html">裘凯的博客</title><subtitle>不管是心路历程也好，还是项目经历也好，都写在这里，希望看到自己的成长。
-</subtitle><entry><title type="html">Micropython 介绍与编译</title><link href="/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91.html" rel="alternate" type="text/html" title="Micropython 介绍与编译" /><published>2017-01-04T00:00:00+08:00</published><updated>2017-01-04T00:00:00+08:00</updated><id>/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91</id><content type="html" xml:base="/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91.html">&lt;p&gt;micropython是Damien George发明的运行在MCU之上的python，项目主页为
-https://github.com/micropython/micropython&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.3.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-01-05T00:13:11+08:00</updated><id>//</id><title type="html">裘凯的博客</title><subtitle>不管是心路历程也好，还是项目经历也好，都写在这里，希望看到自己的成长。
+</subtitle><entry><title type="html">Micropython 介绍与编译</title><link href="/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91.html" rel="alternate" type="text/html" title="Micropython 介绍与编译" /><published>2017-01-04T00:00:00+08:00</published><updated>2017-01-04T00:00:00+08:00</updated><id>/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91</id><content type="html" xml:base="/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91.html">&lt;p&gt;micropython是Damien George发明的运行在MCU之上的python，从&lt;a href=&quot;https://github.com/micropython/micropython&quot;&gt;项目主页&lt;/a&gt;可以下载。&lt;/p&gt;
 
 &lt;p&gt;本文对micropython做了简单介绍，然后在Linux平台下编译通过。&lt;/p&gt;
 
@@ -102,48 +101,45 @@ https://github.com/micropython/micropython&lt;/p&gt;
 &lt;h3 id=&quot;四在linux平台上编译使用&quot;&gt;四、在Linux平台上编译使用&lt;/h3&gt;
 &lt;p&gt;进入minimal/，执行&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ make
-$ make run
-Use make V=1 or set BUILD_VERBOSE in your environment to increase build verbosity.
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make run
+Use make &lt;span class=&quot;nv&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1 or &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;BUILD_VERBOSE &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;your environment to increase build verbosity.
 stty raw opost -echo
 build/firmware.elf
 MicroPython v1.8.6-156-gadf3cb5-dirty on 2016-12-23; minimal with exynos4412
-Type &quot;help()&quot; for more information.
-&amp;gt;&amp;gt;&amp;gt; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+Type &lt;span class=&quot;s2&quot;&gt;&quot;help()&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;more information.
+&lt;span class=&quot;gp&quot;&gt;&amp;gt;&amp;gt;&amp;gt; &lt;/span&gt;
+&lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h3 id=&quot;五交叉编译&quot;&gt;五、交叉编译&lt;/h3&gt;
 &lt;p&gt;新建项目exynos，执行&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ make CROSS=1
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make &lt;span class=&quot;nv&quot;&gt;CROSS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1
 /home/camus/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include/gnu/stubs.h:10:29: fatal error: gnu/stubs-hard.h: No such file or directory
- # include &amp;lt;gnu/stubs-hard.h&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+ &lt;span class=&quot;c&quot;&gt;# include &amp;lt;gnu/stubs-hard.h&amp;gt;&lt;/span&gt;
+ &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;看这个文件名，是浮点计算的问题，估计是编译选项不对。参照uboot的编译开关： http://blog.csdn.net/abcamus/article/details/54023051&lt;/p&gt;
 
 &lt;p&gt;最终Makefile中添加&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;LIB_PATH = -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/ -lgcc
-CFLAGS_CORTEX_V7 = -mthumb -march=armv7-a -mabi=aapcs-linux -msoft-float
-CFLAGS = $(INC) -Wall -Werror -ansi -std=gnu99 $(CFLAGS_CORTEX_V7) $(COPT)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-makefile&quot; data-lang=&quot;makefile&quot;&gt;&lt;span class=&quot;nv&quot;&gt;LIB_PATH&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/ -lgcc
+&lt;span class=&quot;nv&quot;&gt;CFLAGS_CORTEX_V7&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; -mthumb -march&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-a -mabi&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;aapcs-linux -msoft-float
+&lt;span class=&quot;nv&quot;&gt;CFLAGS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(INC)&lt;/span&gt; -Wall -Werror -ansi -std&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;gnu99 &lt;span class=&quot;nv&quot;&gt;$(CFLAGS_CORTEX_V7)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(COPT)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;然后在main.c中添加了raise函数（参照uboot）&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;int raise(int signum)
-{
-	printf(&quot;raise: Signal # %d caught\n&quot;, signum);
-	return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;raise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;raise: Signal # %d caught&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
 &lt;p&gt;再执行&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ make CROSS=1
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;顺利生成bin文件，接着就可以上板子测试了。&lt;/p&gt;</content><summary type="html">micropython是Damien George发明的运行在MCU之上的python，项目主页为
-https://github.com/micropython/micropython</summary></entry><entry><title type="html">Linux Mint搭建Jekyll环境</title><link href="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html" rel="alternate" type="text/html" title="Linux Mint搭建Jekyll环境" /><published>2017-01-03T00:00:00+08:00</published><updated>2017-01-03T00:00:00+08:00</updated><id>/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA</id><content type="html" xml:base="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html">&lt;p&gt;Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make &lt;span class=&quot;nv&quot;&gt;CROSS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;顺利生成bin文件，接着就可以上板子测试了。&lt;/p&gt;</content><summary type="html">micropython是Damien George发明的运行在MCU之上的python，从项目主页可以下载。</summary></entry><entry><title type="html">Linux Mint搭建Jekyll环境</title><link href="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html" rel="alternate" type="text/html" title="Linux Mint搭建Jekyll环境" /><published>2017-01-03T00:00:00+08:00</published><updated>2017-01-03T00:00:00+08:00</updated><id>/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA</id><content type="html" xml:base="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html">&lt;p&gt;Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0&lt;/p&gt;
 
 &lt;p&gt;最终版本信息：&lt;/p&gt;
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ruby -v

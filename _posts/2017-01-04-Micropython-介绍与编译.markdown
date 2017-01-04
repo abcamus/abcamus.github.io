@@ -4,8 +4,7 @@ title:	"Micropython 介绍与编译"
 date:	2017-01-04
 categories:	Python
 ---
-micropython是Damien George发明的运行在MCU之上的python，项目主页为
-https://github.com/micropython/micropython
+micropython是Damien George发明的运行在MCU之上的python，从[项目主页]可以下载。
 
 本文对micropython做了简单介绍，然后在Linux平台下编译通过。
 
@@ -79,7 +78,7 @@ USB HOST | 板载USB3503，引出高性能HSIC，实现3路USB HOST输出
 ### 四、在Linux平台上编译使用
 进入minimal/，执行
 
-```
+{% highlight shell %}
 $ make
 $ make run
 Use make V=1 or set BUILD_VERBOSE in your environment to increase build verbosity.
@@ -89,36 +88,38 @@ MicroPython v1.8.6-156-gadf3cb5-dirty on 2016-12-23; minimal with exynos4412
 Type "help()" for more information.
 >>> 
 ```
+{% endhighlight %}
 
 ### 五、交叉编译
 新建项目exynos，执行
-```
+{% highlight shell %}
 $ make CROSS=1
 /home/camus/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include/gnu/stubs.h:10:29: fatal error: gnu/stubs-hard.h: No such file or directory
  # include <gnu/stubs-hard.h>
-```
+ {% endhighlight %}
 
 看这个文件名，是浮点计算的问题，估计是编译选项不对。参照uboot的编译开关： http://blog.csdn.net/abcamus/article/details/54023051
 
 最终Makefile中添加
-```
+
+{% highlight makefile %}
 LIB_PATH = -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/ -lgcc
 CFLAGS_CORTEX_V7 = -mthumb -march=armv7-a -mabi=aapcs-linux -msoft-float
 CFLAGS = $(INC) -Wall -Werror -ansi -std=gnu99 $(CFLAGS_CORTEX_V7) $(COPT)
-```
+{% endhighlight %}
 
 然后在main.c中添加了raise函数（参照uboot）
-```
+{% highlight c %}
 int raise(int signum)
 {
 	printf("raise: Signal # %d caught\n", signum);
 	return 0;
 }
-```
+{% endhighlight %}
 再执行
-```
+{% highlight shell %}
 $ make CROSS=1
-```
+{% endhighlight %}
 顺利生成bin文件，接着就可以上板子测试了。
 
-
+[项目主页]: https://github.com/micropython/micropython
