@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Micropython 介绍与编译</title>
+    <meta name="description" content="micropython是Damien George发明的运行在MCU之上的python，从项目主页可以下载。本文对micropython做了简单介绍，然后在Linux平台下编译通过。一、Micro Python语法特点:完整支持Python 3.4 语法  完整的Python词法分析器, 解析器,编译器，虚拟机和...">
+
+    <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_8v3czwksspqlg14i.css">
+    <link rel="stylesheet" href="/css/main.css ">
+    <link rel="canonical" href="https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/">
+    <link rel="alternate" type="application/rss+xml" title="HyG" href="https://gaohaoyang.github.io/feed.xml ">
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?cf8506e0ef223e57ff6239944e5d46a4";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+    <script>
+    // google analytics
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-72449510-4', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+</head>
+
+
+  <body>
+
+    <header id="top">
+    <div class="wrapper">
+        <a href="/" class="brand">HyG</a>
+        <small>Front-end Dev Engineer</small>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a href="/">
+                    
+                        <i class="fa fa-home"></i>Home
+                    </a>
+                </li>
+
+                
+                    
+                    <li>
+                        
+                        <a href="/archive/">
+                        
+                            <i class="fa fa-archive"></i>Archives
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/category/">
+                        
+                            <i class="fa fa-th-list"></i>Categories
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/tag/">
+                        
+                            <i class="fa fa-tags"></i>Tags
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/collection/">
+                        
+                            <i class="fa fa-bookmark"></i>Collections
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/demo/">
+                        
+                            <i class="fa fa-play"></i>Demo
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/about/">
+                        
+                            <i class="fa fa-heart"></i>About
+                        </a>
+                    </li>
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
+</header>
+
+
+        <div class="page clearfix" post>
+    <div class="left">
+        <h1>Micropython 介绍与编译</h1>
+        <div class="label">
+
+            <div class="label-card">
+                <i class="fa fa-calendar"></i>2017-01-04
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+                
+            </div>
+
+            <div class="label-card">
+            
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#Python" title="Category: Python" rel="category">Python</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+            </div>
+
+            <div class="label-card">
+            
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+  
+
+</span>
+
+            </div>
+
+        </div>
+        <hr>
+        <article itemscope itemtype="http://schema.org/BlogPosting">
+        <p>micropython是Damien George发明的运行在MCU之上的python，从<a href="https://github.com/micropython/micropython">项目主页</a>可以下载。</p>
+
+<p>本文对micropython做了简单介绍，然后在Linux平台下编译通过。</p>
+
+<h3 id="一micro-python语法特点">一、Micro Python语法特点:</h3>
+
+<p>完整支持Python 3.4 语法</p>
+<ol>
+  <li>完整的Python词法分析器, 解析器,编译器，虚拟机和运行时。</li>
+  <li>包含命令行接口，可离线运行。</li>
+  <li>Python 字节码由内置虚拟机编译运行.</li>
+  <li>有效的内部存储算法，能带来高效的内存利用率。整数变量存储在内存堆中，而不是栈中。</li>
+  <li>使用Python decorators特性,函数可以被编译成原生机器码，虽然这一特性会带来大约2倍的内存消耗，但也使python有更快的执行速度。</li>
+  <li>函数编译可设置使用底层整数代替python内建对象作为数字使用。有些代码的运行效率可以媲美c的效率，并且可以被python直接调用，适合做时间紧迫性，运算复杂度高的应用。</li>
+  <li>通过内联汇编功能，应用可以完全接入底层运行时，内联汇编器也可以像普通的python函数一样调用。</li>
+  <li>基于简单和快速标记的内存垃圾回收算法，运行周期少于4ms，许多函数都可以避免使用栈内存段，因此也不需要垃圾回收功能。</li>
+</ol>
+
+<h3 id="二代码结构">二、代码结构：</h3>
+
+<p>Major components in this repository:</p>
+
+<ul>
+  <li>py/ – the core Python implementation, including compiler, runtime, and core library.</li>
+  <li>unix/ – a version of MicroPython that runs on Unix.</li>
+  <li>stmhal/ – a version of MicroPython that runs on the PyBoard and similar STM32 boards (using ST’s Cube HAL drivers).</li>
+  <li>minimal/ – a minimal MicroPython port. Start with this if you want to port MicroPython to another microcontroller.</li>
+  <li>tests/ – test framework and test scripts.</li>
+  <li>docs/ – user documentation in Sphinx reStructuredText format.</li>
+</ul>
+
+<p>Additional components:</p>
+
+<ul>
+  <li>bare-arm/ – a bare minimum version of MicroPython for ARM MCUs. Used mostly to control code size.</li>
+  <li>teensy/ – a version of MicroPython that runs on the Teensy 3.1 (preliminary but functional).</li>
+  <li>pic16bit/ – a version of MicroPython for 16-bit PIC microcontrollers.</li>
+  <li>cc3200/ – a version of MicroPython that runs on the CC3200 from TI.</li>
+  <li>esp8266/ – an experimental port for ESP8266 WiFi modules.</li>
+  <li>tools/ – various tools, including the pyboard.py module.</li>
+  <li>examples/ – a few example Python scripts.</li>
+</ul>
+
+<h3 id="三硬件平台">三、硬件平台</h3>
+<p>讯为itop exynos4412核心板（SCP）。</p>
+
+<h4 id="31-核心板工艺">3.1 核心板工艺</h4>
+<p>工艺 八层盲埋孔设计，沉金工艺</p>
+
+<h4 id="32-基本参数">3.2 基本参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>CPU</th>
+      <th>三星Exynos4412,四核Cortex-A9，主频为1.6GHz</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>内存</td>
+      <td>2GB 双通道 DDR3</td>
+    </tr>
+    <tr>
+      <td>存储</td>
+      <td>16GB    ［独家支持］</td>
+    </tr>
+    <tr>
+      <td>PMIC</td>
+      <td>选用三星自家电源管理芯片，高效节能！具有9路DC/DC和28路LDO输出电源 经千百万部手机实践检验，与三星4412处理器匹配最佳</td>
+    </tr>
+    <tr>
+      <td>USB HOST</td>
+      <td>板载USB3503，引出高性能HSIC，实现3路USB HOST输出</td>
+    </tr>
+    <tr>
+      <td>扩展</td>
+      <td>引出脚多达320个，满足用户各类扩展需求</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="33-运行温度">3.3 运行温度</h4>
+<p>温度 | 在-20℃到70℃范围的高低温运行测试中运行良好
+–|–</p>
+
+<h4 id="34-其它">3.4 其它</h4>
+<p>视频编解码 | 支持MPEG-4/MPEG2、H.264/H263、VC-1、DivX的视频编解码1080p@30fps
+—|—
+图形加速 |支持2D，3D图形加速ARM Mali-400 MP Core
+存储 |支持SD/MMC/SDIO接口存储卡，最高支持32GB
+硬件编解码 |支持JPEG硬件编解码，最大支持8192×8192分辨率
+电磁屏蔽罩接口 |预留电磁屏蔽罩接口以及四个加固螺孔
+供电 |支持5V电压供电
+特点 |该核心板已经把4412处理器最难实现部分全部承担，可帮助用户轻松实现高端四核产品级设计！</p>
+<h4 id="35-应用范围">3.5 应用范围</h4>
+<p>应用范围	| 家居控制平台、智能家居平台、健身器械操作平台、美容器械操作平台、医疗器械操作平台、智能仪表、仪器、触摸屏控制器、导航设备、车载DVD；智能广告控制终端、排队系统、广告机、楼宇对机、分机以及管理机等
+—|—</p>
+
+<h3 id="四在linux平台上编译使用">四、在Linux平台上编译使用</h3>
+<p>进入minimal/，执行</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="gp">$ </span>make
+<span class="gp">$ </span>make run
+Use make <span class="nv">V</span><span class="o">=</span>1 or <span class="nb">set </span>BUILD_VERBOSE <span class="k">in </span>your environment to increase build verbosity.
+stty raw opost -echo
+build/firmware.elf
+MicroPython v1.8.6-156-gadf3cb5-dirty on 2016-12-23; minimal with exynos4412
+Type <span class="s2">"help()"</span> <span class="k">for </span>more information.
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="sb">```</span></code></pre></figure>
+
+<h3 id="五交叉编译">五、交叉编译</h3>
+<p>新建项目exynos，执行</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="gp">$ </span>make <span class="nv">CROSS</span><span class="o">=</span>1
+/home/camus/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include/gnu/stubs.h:10:29: fatal error: gnu/stubs-hard.h: No such file or directory
+ <span class="c"># include &lt;gnu/stubs-hard.h&gt;</span>
+ </code></pre></figure>
+
+<p>看这个文件名，是浮点计算的问题，估计是编译选项不对。参照uboot的编译开关： http://blog.csdn.net/abcamus/article/details/54023051</p>
+
+<p>最终Makefile中添加</p>
+
+<figure class="highlight"><pre><code class="language-makefile" data-lang="makefile"><span class="nv">LIB_PATH</span> <span class="o">=</span> -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/ -lgcc
+<span class="nv">CFLAGS_CORTEX_V7</span> <span class="o">=</span> -mthumb -march<span class="o">=</span>armv7-a -mabi<span class="o">=</span>aapcs-linux -msoft-float
+<span class="nv">CFLAGS</span> <span class="o">=</span> <span class="nv">$(INC)</span> -Wall -Werror -ansi -std<span class="o">=</span>gnu99 <span class="nv">$(CFLAGS_CORTEX_V7)</span> <span class="nv">$(COPT)</span></code></pre></figure>
+
+<p>然后在main.c中添加了raise函数（参照uboot）</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">raise</span><span class="p">(</span><span class="kt">int</span> <span class="n">signum</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"raise: Signal # %d caught</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">signum</span><span class="p">);</span>
+	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>再执行</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="gp">$ </span>make <span class="nv">CROSS</span><span class="o">=</span>1</code></pre></figure>
+
+<p>顺利生成bin文件，接着就可以上板子测试了。</p>
+
+
+        </article>
+        <hr>
+
+        
+        
+            
+            
+                
+            
+                
+            
+        
+            
+            
+        
+            
+            
+        
+        
+
+        <div class="post-recent">
+    <div class="pre">
+        
+        <p><strong>上一篇</strong> <a href="/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Linux Mint搭建Jekyll环境</a></p>
+        
+    </div>
+    <div class="nex">
+
+        
+        <p><strong>下一篇</strong> <a href="/2017/01/04/test/">谈谈如何提高web服务器并发性能</a></p>
+        
+    </div>
+</div>
+
+
+        <h2 id="comments">Comments</h2>
+        
+<!-- 多说评论框 start -->
+<div class="ds-thread" data-thread-key="https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/" data-title="Micropython 介绍与编译" data-url="https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/"></div>
+<!-- 多说评论框 end -->
+<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    var duoshuoQuery = {
+        short_name: "hygblog"
+    };
+    (function() {
+        var ds = document.createElement('script');
+        ds.type = 'text/javascript';
+        ds.async = true;
+        ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+        ds.charset = 'UTF-8';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+</script>
+<!-- 多说公共JS代码 end -->
+
+
+
+
+
+
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div>
+                    Content
+                </div>
+                <ul id="content-side" class="content-ul">
+                    <li><a href="#similar_posts">Similar Posts</a></li>
+                    <li><a href="#comments">Comments</a></li>
+                </ul>
+            </div>
+            <!-- 其他div框放到这里 -->
+            <!-- <div class="side">bbbb</div> -->
+        </div>
+    </div>
+</div>
+<script>
+/**
+ * target _blank
+ */
+(function() {
+    var aTags = document.querySelectorAll('article a:not([id])')
+    for (var i = 0; i < aTags.length; i++) {
+        aTags[i].setAttribute('target', '_blank')
+    }
+}());
+</script>
+<script src="/js/pageContent.js " charset="utf-8"></script>
+
+
+    <footer class="site-footer">
+
+
+    <div class="wrapper">
+
+        <p class="description">
+             本站记录我前端之旅的沿途风景！ 
+        </p>
+        <p class="contact">
+            Contact me at: 
+            <a href="https://github.com/Gaohaoyang" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a>  
+            <a href="mailto:gaohaoyang126@126.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>  
+            <a href="http://weibo.com/3115521wh" title="Weibo"><i class="fa fa-weibo" aria-hidden="true"></i></a>  
+            <a href="https://www.zhihu.com/people/gaohaoyang" title="Zhihu"><i class="iconfont icon-daoruzhihu"></i></a>  
+            <a href="https://twitter.com/gaohaoyang126" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>  
+            <a href="https://www.facebook.com/gaohaoyang.water" title="Facebook"><i class="fa fa-facebook-official" aria-hidden="true"></i></a>   
+            <a href="https://www.linkedin.com/in/gaohaoyang" title="LinkedIn"><i class="fa fa-linkedin" aria-hidden="true"></i></a>  
+        </p>
+        <p>
+            本站总访问量<span id="busuanzi_value_site_pv"></span>次，本站访客数<span id="busuanzi_value_site_uv"></span>人次，本文总阅读量<span id="busuanzi_value_page_pv"></span>次
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://pages.github.com/">Github Pages</a>.
+            </span>
+            <span>
+                Theme designed by <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+        </p>
+    </div>
+</footer>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
+
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
+  </body>
+
+</html>

@@ -1,11 +1,40 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.3.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-01-05T00:13:11+08:00</updated><id>//</id><title type="html">裘凯的博客</title><subtitle>不管是心路历程也好，还是项目经历也好，都写在这里，希望看到自己的成长。
-</subtitle><entry><title type="html">Micropython 介绍与编译</title><link href="/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91.html" rel="alternate" type="text/html" title="Micropython 介绍与编译" /><published>2017-01-04T00:00:00+08:00</published><updated>2017-01-04T00:00:00+08:00</updated><id>/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91</id><content type="html" xml:base="/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91.html">&lt;p&gt;micropython是Damien George发明的运行在MCU之上的python，从&lt;a href=&quot;https://github.com/micropython/micropython&quot;&gt;项目主页&lt;/a&gt;可以下载。&lt;/p&gt;
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HyG</title>
+    <description></description>
+    <link>https://gaohaoyang.github.io/</link>
+    <atom:link href="https://gaohaoyang.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Thu, 05 Jan 2017 19:47:26 +0800</pubDate>
+    <lastBuildDate>Thu, 05 Jan 2017 19:47:26 +0800</lastBuildDate>
+    <generator>Jekyll v3.3.1</generator>
+    
+      <item>
+        <title>谈谈如何提高web服务器并发性能</title>
+        <description>任何一名web工程师都希望自己做的web应用能被越来越多的人使用，如果我们所做的web应用随着用户的增多而宕机了，那么越来越多的人就会变得越来越少了，为了让我们的web应用能有更多人使用，我们就得提升web应用服务端的并发能力。那么我们如何做到这点了，根据现有的并发技术我们会有如下选择：
+</description>
+        <pubDate>Wed, 04 Jan 2017 00:00:00 +0800</pubDate>
+        <link>https://gaohaoyang.github.io/2017/01/04/test/</link>
+        <guid isPermaLink="true">https://gaohaoyang.github.io/2017/01/04/test/</guid>
+        
+        <category>java</category>
+        
+        <category>并发， 服务器</category>
+        
+        
+        <category>java</category>
+        
+      </item>
+    
+      <item>
+        <title>Micropython 介绍与编译</title>
+        <description>micropython是Damien George发明的运行在MCU之上的python，从&lt;a href=&quot;https://github.com/micropython/micropython&quot;&gt;项目主页&lt;/a&gt;可以下载。
 
-&lt;p&gt;本文对micropython做了简单介绍，然后在Linux平台下编译通过。&lt;/p&gt;
+本文对micropython做了简单介绍，然后在Linux平台下编译通过。
 
 &lt;h3 id=&quot;一micro-python语法特点&quot;&gt;一、Micro Python语法特点:&lt;/h3&gt;
 
-&lt;p&gt;完整支持Python 3.4 语法&lt;/p&gt;
+完整支持Python 3.4 语法
 &lt;ol&gt;
   &lt;li&gt;完整的Python词法分析器, 解析器,编译器，虚拟机和运行时。&lt;/li&gt;
   &lt;li&gt;包含命令行接口，可离线运行。&lt;/li&gt;
@@ -19,7 +48,7 @@
 
 &lt;h3 id=&quot;二代码结构&quot;&gt;二、代码结构：&lt;/h3&gt;
 
-&lt;p&gt;Major components in this repository:&lt;/p&gt;
+Major components in this repository:
 
 &lt;ul&gt;
   &lt;li&gt;py/ – the core Python implementation, including compiler, runtime, and core library.&lt;/li&gt;
@@ -30,7 +59,7 @@
   &lt;li&gt;docs/ – user documentation in Sphinx reStructuredText format.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Additional components:&lt;/p&gt;
+Additional components:
 
 &lt;ul&gt;
   &lt;li&gt;bare-arm/ – a bare minimum version of MicroPython for ARM MCUs. Used mostly to control code size.&lt;/li&gt;
@@ -43,10 +72,10 @@
 &lt;/ul&gt;
 
 &lt;h3 id=&quot;三硬件平台&quot;&gt;三、硬件平台&lt;/h3&gt;
-&lt;p&gt;讯为itop exynos4412核心板（SCP）。&lt;/p&gt;
+讯为itop exynos4412核心板（SCP）。
 
 &lt;h4 id=&quot;31-核心板工艺&quot;&gt;3.1 核心板工艺&lt;/h4&gt;
-&lt;p&gt;工艺 八层盲埋孔设计，沉金工艺&lt;/p&gt;
+工艺 八层盲埋孔设计，沉金工艺
 
 &lt;h4 id=&quot;32-基本参数&quot;&gt;3.2 基本参数&lt;/h4&gt;
 
@@ -82,24 +111,24 @@
 &lt;/table&gt;
 
 &lt;h4 id=&quot;33-运行温度&quot;&gt;3.3 运行温度&lt;/h4&gt;
-&lt;p&gt;温度 | 在-20℃到70℃范围的高低温运行测试中运行良好
-–|–&lt;/p&gt;
+温度 | 在-20℃到70℃范围的高低温运行测试中运行良好
+–|–
 
 &lt;h4 id=&quot;34-其它&quot;&gt;3.4 其它&lt;/h4&gt;
-&lt;p&gt;视频编解码 | 支持MPEG-4/MPEG2、H.264/H263、VC-1、DivX的视频编解码1080p@30fps
+视频编解码 | 支持MPEG-4/MPEG2、H.264/H263、VC-1、DivX的视频编解码1080p@30fps
 —|—
 图形加速 |支持2D，3D图形加速ARM Mali-400 MP Core
 存储 |支持SD/MMC/SDIO接口存储卡，最高支持32GB
 硬件编解码 |支持JPEG硬件编解码，最大支持8192×8192分辨率
 电磁屏蔽罩接口 |预留电磁屏蔽罩接口以及四个加固螺孔
 供电 |支持5V电压供电
-特点 |该核心板已经把4412处理器最难实现部分全部承担，可帮助用户轻松实现高端四核产品级设计！&lt;/p&gt;
+特点 |该核心板已经把4412处理器最难实现部分全部承担，可帮助用户轻松实现高端四核产品级设计！
 &lt;h4 id=&quot;35-应用范围&quot;&gt;3.5 应用范围&lt;/h4&gt;
-&lt;p&gt;应用范围	| 家居控制平台、智能家居平台、健身器械操作平台、美容器械操作平台、医疗器械操作平台、智能仪表、仪器、触摸屏控制器、导航设备、车载DVD；智能广告控制终端、排队系统、广告机、楼宇对机、分机以及管理机等
-—|—&lt;/p&gt;
+应用范围	| 家居控制平台、智能家居平台、健身器械操作平台、美容器械操作平台、医疗器械操作平台、智能仪表、仪器、触摸屏控制器、导航设备、车载DVD；智能广告控制终端、排队系统、广告机、楼宇对机、分机以及管理机等
+—|—
 
 &lt;h3 id=&quot;四在linux平台上编译使用&quot;&gt;四、在Linux平台上编译使用&lt;/h3&gt;
-&lt;p&gt;进入minimal/，执行&lt;/p&gt;
+进入minimal/，执行
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make
 &lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make run
@@ -112,22 +141,22 @@ Type &lt;span class=&quot;s2&quot;&gt;&quot;help()&quot;&lt;/span&gt; &lt;span c
 &lt;span class=&quot;sb&quot;&gt;```&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h3 id=&quot;五交叉编译&quot;&gt;五、交叉编译&lt;/h3&gt;
-&lt;p&gt;新建项目exynos，执行&lt;/p&gt;
+新建项目exynos，执行
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make &lt;span class=&quot;nv&quot;&gt;CROSS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1
 /home/camus/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include/gnu/stubs.h:10:29: fatal error: gnu/stubs-hard.h: No such file or directory
  &lt;span class=&quot;c&quot;&gt;# include &amp;lt;gnu/stubs-hard.h&amp;gt;&lt;/span&gt;
  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;看这个文件名，是浮点计算的问题，估计是编译选项不对。参照uboot的编译开关： http://blog.csdn.net/abcamus/article/details/54023051&lt;/p&gt;
+看这个文件名，是浮点计算的问题，估计是编译选项不对。参照uboot的编译开关： http://blog.csdn.net/abcamus/article/details/54023051
 
-&lt;p&gt;最终Makefile中添加&lt;/p&gt;
+最终Makefile中添加
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-makefile&quot; data-lang=&quot;makefile&quot;&gt;&lt;span class=&quot;nv&quot;&gt;LIB_PATH&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/ -lgcc
 &lt;span class=&quot;nv&quot;&gt;CFLAGS_CORTEX_V7&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; -mthumb -march&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;armv7-a -mabi&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;aapcs-linux -msoft-float
 &lt;span class=&quot;nv&quot;&gt;CFLAGS&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(INC)&lt;/span&gt; -Wall -Werror -ansi -std&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;gnu99 &lt;span class=&quot;nv&quot;&gt;$(CFLAGS_CORTEX_V7)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$(COPT)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;然后在main.c中添加了raise函数（参照uboot）&lt;/p&gt;
+然后在main.c中添加了raise函数（参照uboot）
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;raise&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;signum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -135,13 +164,27 @@ Type &lt;span class=&quot;s2&quot;&gt;&quot;help()&quot;&lt;/span&gt; &lt;span c
 	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;再执行&lt;/p&gt;
+再执行
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;make &lt;span class=&quot;nv&quot;&gt;CROSS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;顺利生成bin文件，接着就可以上板子测试了。&lt;/p&gt;</content><summary type="html">micropython是Damien George发明的运行在MCU之上的python，从项目主页可以下载。</summary></entry><entry><title type="html">Linux Mint搭建Jekyll环境</title><link href="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html" rel="alternate" type="text/html" title="Linux Mint搭建Jekyll环境" /><published>2017-01-03T00:00:00+08:00</published><updated>2017-01-03T00:00:00+08:00</updated><id>/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA</id><content type="html" xml:base="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html">&lt;p&gt;Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0&lt;/p&gt;
+顺利生成bin文件，接着就可以上板子测试了。
 
-&lt;p&gt;最终版本信息：&lt;/p&gt;
+</description>
+        <pubDate>Wed, 04 Jan 2017 00:00:00 +0800</pubDate>
+        <link>https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/</link>
+        <guid isPermaLink="true">https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/</guid>
+        
+        
+        <category>Python</category>
+        
+      </item>
+    
+      <item>
+        <title>Linux Mint搭建Jekyll环境</title>
+        <description>Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0
+
+最终版本信息：
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ruby -v
 ruby 2.3.3p222 (2016-11-21 revision 56859) [x86_64-linux]
 $ jekyll -v
@@ -151,7 +194,7 @@ jekyll 3.3.1
 
 &lt;h4 id=&quot;安装rvm&quot;&gt;安装rvm&lt;/h4&gt;
 
-&lt;p&gt;参考这里： http://rvm.io/&lt;/p&gt;
+参考这里： http://rvm.io/
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
 $ curl -sSL https://get.rvm.io | bash -s stable
@@ -164,38 +207,51 @@ $ curl -sSL https://get.rvm.io | bash -s stable
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;一开始安装的时候遇到了apt-get 404错误，于是换了个软件源，把上交的换成了清华的，基础源换成了阿里云的。update一下再执行就好了。&lt;/p&gt;
+一开始安装的时候遇到了apt-get 404错误，于是换了个软件源，把上交的换成了清华的，基础源换成了阿里云的。update一下再执行就好了。
 
-&lt;p&gt;如果太慢看这里： https://ruby-china.org/wiki/ruby-mirror&lt;/p&gt;
+如果太慢看这里： https://ruby-china.org/wiki/ruby-mirror
 
 &lt;h4 id=&quot;jekyll安装测试&quot;&gt;Jekyll安装测试&lt;/h4&gt;
 
-&lt;p&gt;安装参考： http://jekyll.com.cn/docs/installation/&lt;/p&gt;
+安装参考： http://jekyll.com.cn/docs/installation/
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ gem install jekyll bundler
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;测试参考： http://jekyll.com.cn/docs/quickstart/&lt;/p&gt;
+测试参考： http://jekyll.com.cn/docs/quickstart/
 
 &lt;blockquote&gt;
-  &lt;p&gt;注意：运行jekyll new myblog的时候说找不到gem jekyll，原因是GEM_HOME没有配置&lt;/p&gt;
+  注意：运行jekyll new myblog的时候说找不到gem jekyll，原因是GEM_HOME没有配置
 &lt;/blockquote&gt;
 
-&lt;p&gt;我的系统GEM_HOME设为&lt;code class=&quot;highlighter-rouge&quot;&gt;.rvm/gems/ruby-2.3.3&lt;/code&gt;&lt;/p&gt;
+我的系统GEM_HOME设为&lt;code class=&quot;highlighter-rouge&quot;&gt;.rvm/gems/ruby-2.3.3&lt;/code&gt;
 
-&lt;p&gt;Could not find gem ‘minima (~&amp;gt; 2.0)’
-Could not find gem ‘jekyll-feed (~&amp;gt; 0.6)’&lt;/p&gt;
+Could not find gem ‘minima (~&amp;gt; 2.0)’
+Could not find gem ‘jekyll-feed (~&amp;gt; 0.6)’
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ gem install minima jekyll-feed
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;然后按照测试参考执行，在浏览器里打开localhost:4000就看到了主页&lt;/p&gt;</content><summary type="html">Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&amp;gt;=2.0</summary></entry><entry><title type="html">Welcome to Jekyll!</title><link href="/jekyll/update/2017/01/02/welcome-to-jekyll.html" rel="alternate" type="text/html" title="Welcome to Jekyll!" /><published>2017-01-02T21:22:37+08:00</published><updated>2017-01-02T21:22:37+08:00</updated><id>/jekyll/update/2017/01/02/welcome-to-jekyll</id><content type="html" xml:base="/jekyll/update/2017/01/02/welcome-to-jekyll.html">&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+然后按照测试参考执行，在浏览器里打开localhost:4000就看到了主页
+</description>
+        <pubDate>Tue, 03 Jan 2017 00:00:00 +0800</pubDate>
+        <link>https://gaohaoyang.github.io/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</link>
+        <guid isPermaLink="true">https://gaohaoyang.github.io/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</guid>
+        
+        
+        <category>Linux</category>
+        
+      </item>
+    
+      <item>
+        <title>Welcome to Jekyll!</title>
+        <description>You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.
 
-&lt;p&gt;To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.
 
-&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+Jekyll also offers powerful support for code snippets:
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
   &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
@@ -203,4 +259,19 @@ Could not find gem ‘jekyll-feed (~&amp;gt; 0.6)’&lt;/p&gt;
 &lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Tom'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints 'Hi, Tom' to STDOUT.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Check out the &lt;a href=&quot;http://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;</content><summary type="html">You’ll find this post in your _posts directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run jekyll serve, which launches a web server and auto-regenerates your site when a file is updated.</summary></entry></feed>
+Check out the &lt;a href=&quot;http://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.
+
+</description>
+        <pubDate>Mon, 02 Jan 2017 21:22:37 +0800</pubDate>
+        <link>https://gaohaoyang.github.io/2017/01/02/welcome-to-jekyll/</link>
+        <guid isPermaLink="true">https://gaohaoyang.github.io/2017/01/02/welcome-to-jekyll/</guid>
+        
+        
+        <category>jekyll</category>
+        
+        <category>update</category>
+        
+      </item>
+    
+  </channel>
+</rss>

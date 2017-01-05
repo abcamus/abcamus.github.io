@@ -1,156 +1,769 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
   <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>裘凯的博客</title>
-  <meta name="description" content="不管是心路历程也好，还是项目经历也好，都写在这里，希望看到自己的成长。">
+    <title>HyG</title>
+    <meta name="description" content="">
 
-  <link rel="stylesheet" href="/assets/main.css">
-  <link rel="canonical" href="/">
-  <link rel="alternate" type="application/rss+xml" title="裘凯的博客" href="/feed.xml">
-  
-  
+    <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico?" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_8v3czwksspqlg14i.css">
+    <link rel="stylesheet" href="/css/main.css ">
+    <link rel="canonical" href="https://gaohaoyang.github.io/">
+    <link rel="alternate" type="application/rss+xml" title="HyG" href="https://gaohaoyang.github.io/feed.xml ">
+
+
+    <script>
+    // 百度统计代码
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?cf8506e0ef223e57ff6239944e5d46a4";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+
+
+    <script>
+    // google analytics
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-72449510-4', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
 </head>
 
 
   <body>
 
-    <header class="site-header" role="banner">
+    <header id="top">
+    <div class="wrapper">
+        <a href="/" class="brand">HyG</a>
+        <small>Front-end Dev Engineer</small>
+        <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
+        <nav id="headerNav">
+            <ul>
+                <li>
+                    
+                    <a class="active" href="/">
+                        
+                        <i class="fa fa-home"></i>Home
+                    </a>
+                </li>
 
-  <div class="wrapper">
-
-    <a class="site-title" href="/">裘凯的博客</a>
-
-    <nav class="site-nav">
-      <span class="menu-icon">
-        <svg viewBox="0 0 18 15" width="18px" height="15px">
-          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
-          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
-          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
-        </svg>
-      </span>
-
-      <div class="trigger">
-        
-          
-          <a class="page-link" href="/about/">About</a>
-          
-        
-          
-        
-          
-        
-          
-        
-          
-        
-      </div>
-    </nav>
-
-  </div>
-
+                
+                    
+                    <li>
+                        
+                        <a href="/archive/">
+                        
+                            <i class="fa fa-archive"></i>Archives
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/category/">
+                        
+                            <i class="fa fa-th-list"></i>Categories
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/tag/">
+                        
+                            <i class="fa fa-tags"></i>Tags
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/collection/">
+                        
+                            <i class="fa fa-bookmark"></i>Collections
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/demo/">
+                        
+                            <i class="fa fa-play"></i>Demo
+                        </a>
+                    </li>
+                    
+                
+                    
+                    <li>
+                        
+                        <a href="/about/">
+                        
+                            <i class="fa fa-heart"></i>About
+                        </a>
+                    </li>
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+            </ul>
+        </nav>
+    </div>
 </header>
 
 
-    <main class="page-content" aria-label="Content">
-      <div class="wrapper">
-        <div class="home">
+        <div class="page clearfix" index>
+    <div class="left">
+        <h1>Welcome to HyG's Blog!</h1>
+        <small>这里记录着我的前端学习之路</small>
+        <hr>
+        <ul>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/2017/01/04/test/">谈谈如何提高web服务器并发性能</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2017-01-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
 
-  <h1 class="page-heading">Posts</h1>
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
   
+    
+        <a href="/category/#java" title="Category: java" rel="category">java</a>
+    
   
 
+  <!-- <span class="point">•</span> -->
+</span>
 
-  <ul class="post-list">
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
     
-      <li>
-        <span class="post-meta">Jan 4, 2017</span>
-
-        <h2>
-          <a class="post-link" href="/python/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91.html">Micropython 介绍与编译</a>
-        </h2>
-      </li>
+        <a href="/tag/#java" title="Tag: java" rel="tag">java</a>&nbsp;
     
-      <li>
-        <span class="post-meta">Jan 3, 2017</span>
-
-        <h2>
-          <a class="post-link" href="/linux/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.html">Linux Mint搭建Jekyll环境</a>
-        </h2>
-      </li>
+        <a href="/tag/#并发， 服务器" title="Tag: 并发， 服务器" rel="tag">并发， 服务器</a>
     
-      <li>
-        <span class="post-meta">Jan 2, 2017</span>
+  
 
-        <h2>
-          <a class="post-link" href="/jekyll/update/2017/01/02/welcome-to-jekyll.html">Welcome to Jekyll!</a>
-        </h2>
-      </li>
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>任何一名web工程师都希望自己做的web应用能被越来越多的人使用，如果我们所做的web应用随着用户的增多而宕机了，那么越来越多的人就会变得越来越少了，为了让我们的web应用能有更多人使用，我们就得提升web应用服务端的并发能力。那么我们如何做到这点了，根据现有的并发技术我们会有如下选择：</p>
+
+                </div>
+                <div class="read-all">
+                    <a  href="/2017/01/04/test/"><i class="fa fa-newspaper-o"></i>Read All</a>
+                </div>
+                <hr>
+              </li>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/">Micropython 介绍与编译</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2017-01-04
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
     
-  </ul>
+        <a href="/category/#Python" title="Category: Python" rel="category">Python</a>
+    
+  
 
-  <p class="rss-subscribe">subscribe <a href="/feed.xml">via RSS</a></p>
+  <!-- <span class="point">•</span> -->
+</span>
 
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>micropython是Damien George发明的运行在MCU之上的python，从<a href="https://github.com/micropython/micropython">项目主页</a>可以下载。</p>
+
+<p>本文对micropython做了简单介绍，然后在Linux平台下编译通过。</p>
+
+<h3 id="一micro-python语法特点">一、Micro Python语法特点:</h3>
+
+<p>完整支持Python 3.4 语法</p>
+<ol>
+  <li>完整的Python词法分析器, 解析器,编译器，虚拟机和运行时。</li>
+  <li>包含命令行接口，可离线运行。</li>
+  <li>Python 字节码由内置虚拟机编译运行.</li>
+  <li>有效的内部存储算法，能带来高效的内存利用率。整数变量存储在内存堆中，而不是栈中。</li>
+  <li>使用Python decorators特性,函数可以被编译成原生机器码，虽然这一特性会带来大约2倍的内存消耗，但也使python有更快的执行速度。</li>
+  <li>函数编译可设置使用底层整数代替python内建对象作为数字使用。有些代码的运行效率可以媲美c的效率，并且可以被python直接调用，适合做时间紧迫性，运算复杂度高的应用。</li>
+  <li>通过内联汇编功能，应用可以完全接入底层运行时，内联汇编器也可以像普通的python函数一样调用。</li>
+  <li>基于简单和快速标记的内存垃圾回收算法，运行周期少于4ms，许多函数都可以避免使用栈内存段，因此也不需要垃圾回收功能。</li>
+</ol>
+
+<h3 id="二代码结构">二、代码结构：</h3>
+
+<p>Major components in this repository:</p>
+
+<ul>
+  <li>py/ – the core Python implementation, including compiler, runtime, and core library.</li>
+  <li>unix/ – a version of MicroPython that runs on Unix.</li>
+  <li>stmhal/ – a version of MicroPython that runs on the PyBoard and similar STM32 boards (using ST’s Cube HAL drivers).</li>
+  <li>minimal/ – a minimal MicroPython port. Start with this if you want to port MicroPython to another microcontroller.</li>
+  <li>tests/ – test framework and test scripts.</li>
+  <li>docs/ – user documentation in Sphinx reStructuredText format.</li>
+</ul>
+
+<p>Additional components:</p>
+
+<ul>
+  <li>bare-arm/ – a bare minimum version of MicroPython for ARM MCUs. Used mostly to control code size.</li>
+  <li>teensy/ – a version of MicroPython that runs on the Teensy 3.1 (preliminary but functional).</li>
+  <li>pic16bit/ – a version of MicroPython for 16-bit PIC microcontrollers.</li>
+  <li>cc3200/ – a version of MicroPython that runs on the CC3200 from TI.</li>
+  <li>esp8266/ – an experimental port for ESP8266 WiFi modules.</li>
+  <li>tools/ – various tools, including the pyboard.py module.</li>
+  <li>examples/ – a few example Python scripts.</li>
+</ul>
+
+<h3 id="三硬件平台">三、硬件平台</h3>
+<p>讯为itop exynos4412核心板（SCP）。</p>
+
+<h4 id="31-核心板工艺">3.1 核心板工艺</h4>
+<p>工艺 八层盲埋孔设计，沉金工艺</p>
+
+<h4 id="32-基本参数">3.2 基本参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>CPU</th>
+      <th>三星Exynos4412,四核Cortex-A9，主频为1.6GHz</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>内存</td>
+      <td>2GB 双通道 DDR3</td>
+    </tr>
+    <tr>
+      <td>存储</td>
+      <td>16GB    ［独家支持］</td>
+    </tr>
+    <tr>
+      <td>PMIC</td>
+      <td>选用三星自家电源管理芯片，高效节能！具有9路DC/DC和28路LDO输出电源 经千百万部手机实践检验，与三星4412处理器匹配最佳</td>
+    </tr>
+    <tr>
+      <td>USB HOST</td>
+      <td>板载USB3503，引出高性能HSIC，实现3路USB HOST输出</td>
+    </tr>
+    <tr>
+      <td>扩展</td>
+      <td>引出脚多达320个，满足用户各类扩展需求</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="33-运行温度">3.3 运行温度</h4>
+<p>温度 | 在-20℃到70℃范围的高低温运行测试中运行良好
+–|–</p>
+
+<h4 id="34-其它">3.4 其它</h4>
+<p>视频编解码 | 支持MPEG-4/MPEG2、H.264/H263、VC-1、DivX的视频编解码1080p@30fps
+—|—
+图形加速 |支持2D，3D图形加速ARM Mali-400 MP Core
+存储 |支持SD/MMC/SDIO接口存储卡，最高支持32GB
+硬件编解码 |支持JPEG硬件编解码，最大支持8192×8192分辨率
+电磁屏蔽罩接口 |预留电磁屏蔽罩接口以及四个加固螺孔
+供电 |支持5V电压供电
+特点 |该核心板已经把4412处理器最难实现部分全部承担，可帮助用户轻松实现高端四核产品级设计！</p>
+<h4 id="35-应用范围">3.5 应用范围</h4>
+<p>应用范围	| 家居控制平台、智能家居平台、健身器械操作平台、美容器械操作平台、医疗器械操作平台、智能仪表、仪器、触摸屏控制器、导航设备、车载DVD；智能广告控制终端、排队系统、广告机、楼宇对机、分机以及管理机等
+—|—</p>
+
+<h3 id="四在linux平台上编译使用">四、在Linux平台上编译使用</h3>
+<p>进入minimal/，执行</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="gp">$ </span>make
+<span class="gp">$ </span>make run
+Use make <span class="nv">V</span><span class="o">=</span>1 or <span class="nb">set </span>BUILD_VERBOSE <span class="k">in </span>your environment to increase build verbosity.
+stty raw opost -echo
+build/firmware.elf
+MicroPython v1.8.6-156-gadf3cb5-dirty on 2016-12-23; minimal with exynos4412
+Type <span class="s2">"help()"</span> <span class="k">for </span>more information.
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="sb">```</span></code></pre></figure>
+
+<h3 id="五交叉编译">五、交叉编译</h3>
+<p>新建项目exynos，执行</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="gp">$ </span>make <span class="nv">CROSS</span><span class="o">=</span>1
+/home/camus/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include/gnu/stubs.h:10:29: fatal error: gnu/stubs-hard.h: No such file or directory
+ <span class="c"># include &lt;gnu/stubs-hard.h&gt;</span>
+ </code></pre></figure>
+
+<p>看这个文件名，是浮点计算的问题，估计是编译选项不对。参照uboot的编译开关： http://blog.csdn.net/abcamus/article/details/54023051</p>
+
+<p>最终Makefile中添加</p>
+
+<figure class="highlight"><pre><code class="language-makefile" data-lang="makefile"><span class="nv">LIB_PATH</span> <span class="o">=</span> -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/ -lgcc
+<span class="nv">CFLAGS_CORTEX_V7</span> <span class="o">=</span> -mthumb -march<span class="o">=</span>armv7-a -mabi<span class="o">=</span>aapcs-linux -msoft-float
+<span class="nv">CFLAGS</span> <span class="o">=</span> <span class="nv">$(INC)</span> -Wall -Werror -ansi -std<span class="o">=</span>gnu99 <span class="nv">$(CFLAGS_CORTEX_V7)</span> <span class="nv">$(COPT)</span></code></pre></figure>
+
+<p>然后在main.c中添加了raise函数（参照uboot）</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">raise</span><span class="p">(</span><span class="kt">int</span> <span class="n">signum</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"raise: Signal # %d caught</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">signum</span><span class="p">);</span>
+	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>再执行</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="gp">$ </span>make <span class="nv">CROSS</span><span class="o">=</span>1</code></pre></figure>
+
+<p>顺利生成bin文件，接着就可以上板子测试了。</p>
+
+
+                </div>
+                <div class="read-all">
+                    <a  href="/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/"><i class="fa fa-newspaper-o"></i>Read All</a>
+                </div>
+                <hr>
+              </li>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Linux Mint搭建Jekyll环境</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2017-01-03
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#Linux" title="Category: Linux" rel="category">Linux</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求&gt;=2.0</p>
+
+<p>最终版本信息：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$ ruby -v
+ruby 2.3.3p222 (2016-11-21 revision 56859) [x86_64-linux]
+$ jekyll -v
+jekyll 3.3.1
+</code></pre>
 </div>
 
-      </div>
-    </main>
+<h4 id="安装rvm">安装rvm</h4>
+
+<p>参考这里： http://rvm.io/</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+$ curl -sSL https://get.rvm.io | bash -s stable
+</code></pre>
+</div>
+
+<h4 id="更新ruby">更新ruby</h4>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ rvm install ruby-2.2.0
+</code></pre>
+</div>
+
+<p>一开始安装的时候遇到了apt-get 404错误，于是换了个软件源，把上交的换成了清华的，基础源换成了阿里云的。update一下再执行就好了。</p>
+
+<p>如果太慢看这里： https://ruby-china.org/wiki/ruby-mirror</p>
+
+<h4 id="jekyll安装测试">Jekyll安装测试</h4>
+
+<p>安装参考： http://jekyll.com.cn/docs/installation/</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ gem install jekyll bundler
+</code></pre>
+</div>
+
+<p>测试参考： http://jekyll.com.cn/docs/quickstart/</p>
+
+<blockquote>
+  <p>注意：运行jekyll new myblog的时候说找不到gem jekyll，原因是GEM_HOME没有配置</p>
+</blockquote>
+
+<p>我的系统GEM_HOME设为<code class="highlighter-rouge">.rvm/gems/ruby-2.3.3</code></p>
+
+<p>Could not find gem ‘minima (~&gt; 2.0)’
+Could not find gem ‘jekyll-feed (~&gt; 0.6)’</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ gem install minima jekyll-feed
+</code></pre>
+</div>
+
+<p>然后按照测试参考执行，在浏览器里打开localhost:4000就看到了主页</p>
+
+                </div>
+                <div class="read-all">
+                    <a  href="/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"><i class="fa fa-newspaper-o"></i>Read All</a>
+                </div>
+                <hr>
+              </li>
+            
+              <li>
+                <h2>
+                  <a class="post-link" href="/2017/01/02/welcome-to-jekyll/">Welcome to Jekyll!</a>
+                </h2>
+                <div class="label">
+                    <div class="label-card">
+                        <i class="fa fa-calendar"></i>2017-01-02
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+                    <div class="label-card">
+                        
+                    </div>
+
+                    <div class="label-card">
+                    
+
+
+<!-- <span class="point">•</span> -->
+<span class="categories">
+  <i class="fa fa-th-list"></i>
+  
+    
+        <a href="/category/#jekyll" title="Category: jekyll" rel="category">jekyll</a>&nbsp;
+    
+        <a href="/category/#update" title="Category: update" rel="category">update</a>
+    
+  
+
+  <!-- <span class="point">•</span> -->
+</span>
+
+
+                    </div>
+
+                    <div class="label-card">
+                    
+<!-- <span class="point">•</span> -->
+<span class="pageTag">
+  <i class="fa fa-tags"></i>
+  
+    
+  
+
+</span>
+
+                    </div>
+                </div>
+                <div class="excerpt">
+                    <p>You’ll find this post in your <code class="highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+
+<p>To add new posts, simply add a file in the <code class="highlighter-rouge">_posts</code> directory that follows the convention <code class="highlighter-rouge">YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+
+<p>Jekyll also offers powerful support for code snippets:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
+<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
+
+<p>Check out the <a href="http://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>
+
+
+                </div>
+                <div class="read-all">
+                    <a  href="/2017/01/02/welcome-to-jekyll/"><i class="fa fa-newspaper-o"></i>Read All</a>
+                </div>
+                <hr>
+              </li>
+            
+        </ul>
+
+
+
+        <!-- Pagination links -->
+        <div class="pagination">
+          
+            <span class="previous disable"><i class="fa fa-angle-double-left"></i></span>
+            <span class="previous disable"><i class="fa fa-angle-left"></i></span>
+          
+          <span class="page_number ">1/1</span>
+          
+            <span class="next disable"><i class="fa fa-angle-right"></i></span>
+            <span class="next disable"><i class="fa fa-angle-double-right"></i></span>
+          
+        </div>
+    </div>
+    <!-- <button class="anchor"><i class="fa fa-anchor"></i></button> -->
+    <div class="right">
+        <div class="wrap">
+            <div class="side">
+                <div>
+                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                    Recent Posts
+                </div>
+                <ul class="content-ul" recent>
+                    
+                        <li><a href="/2017/01/04/test/">谈谈如何提高web服务器并发性能</a></li>
+                    
+                        <li><a href="/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/">Micropython 介绍与编译</a></li>
+                    
+                        <li><a href="/2017/01/03/Linux-Mint-Jekyll%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">Linux Mint搭建Jekyll环境</a></li>
+                    
+                        <li><a href="/2017/01/02/welcome-to-jekyll/">Welcome to Jekyll!</a></li>
+                    
+                </ul>
+            </div>
+
+            <!-- Content -->
+            <div class="side ">
+                <div>
+                    <i class="fa fa-th-list"></i>
+                    Categories
+                </div>
+                <ul class="content-ul" cate>
+                    
+                    <li>
+                        <a href="/category/#jekyll" class="categories-list-item" cate="jekyll">
+                            <span class="name">
+                                jekyll
+                            </span>
+                            <span class="badge">1</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="/category/#update" class="categories-list-item" cate="update">
+                            <span class="name">
+                                update
+                            </span>
+                            <span class="badge">1</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="/category/#Linux" class="categories-list-item" cate="Linux">
+                            <span class="name">
+                                Linux
+                            </span>
+                            <span class="badge">1</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="/category/#Python" class="categories-list-item" cate="Python">
+                            <span class="name">
+                                Python
+                            </span>
+                            <span class="badge">1</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="/category/#java" class="categories-list-item" cate="java">
+                            <span class="name">
+                                java
+                            </span>
+                            <span class="badge">1</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            <!-- 其他div框放到这里 -->
+            <div class="side">
+                <div>
+                    <i class="fa fa-tags"></i>
+                    Tags
+                </div>
+                <div class="tags-cloud">
+                    
+                    
+                    
+                    
+
+                    
+
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#java" style="font-size: 9pt; color: #999;">java</a>
+                    
+                      
+                      
+                      
+                      
+                      
+                      <a href="/tag/#并发， 服务器" style="font-size: 9pt; color: #999;">并发， 服务器</a>
+                    
+                </div>
+            </div>
+
+            <!-- <div class="side">
+                <div>
+                    <i class="fa fa-external-link"></i>
+                    Links
+                </div>
+                <ul  class="content-ul">
+
+                </ul>
+            </div> -->
+        </div>
+    </div>
+</div>
+<!-- <script src="/js/scroll.min.js " charset="utf-8"></script> -->
+<!-- <script src="/js/pageContent.js " charset="utf-8"></script> -->
+
 
     <footer class="site-footer">
 
-  <div class="wrapper">
 
-    <h2 class="footer-heading">裘凯的博客</h2>
+    <div class="wrapper">
 
-    <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
-        <ul class="contact-list">
-          <li>
-            
-              裘凯的博客
-            
-            </li>
-            
-            <li><a href="mailto:abcamus_dev@163.com">abcamus_dev@163.com</a></li>
-            
-        </ul>
-      </div>
-
-      <div class="footer-col footer-col-2">
-        <ul class="social-media-list">
-          
-          <li>
-            <a href="https://github.com/abcamus"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
-</span><span class="username">abcamus</span></a>
-
-          </li>
-          
-
-          
-          <li>
-            <a href="https://twitter.com/abcamus"><span class="icon icon--twitter"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
-</span><span class="username">abcamus</span></a>
-
-          </li>
-          
-        </ul>
-      </div>
-
-      <div class="footer-col footer-col-3">
-        <p>不管是心路历程也好，还是项目经历也好，都写在这里，希望看到自己的成长。
-</p>
-      </div>
+        <p class="description">
+             本站记录我前端之旅的沿途风景！ 
+        </p>
+        <p class="contact">
+            Contact me at: 
+            <a href="https://github.com/Gaohaoyang" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a>  
+            <a href="mailto:gaohaoyang126@126.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>  
+            <a href="http://weibo.com/3115521wh" title="Weibo"><i class="fa fa-weibo" aria-hidden="true"></i></a>  
+            <a href="https://www.zhihu.com/people/gaohaoyang" title="Zhihu"><i class="iconfont icon-daoruzhihu"></i></a>  
+            <a href="https://twitter.com/gaohaoyang126" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>  
+            <a href="https://www.facebook.com/gaohaoyang.water" title="Facebook"><i class="fa fa-facebook-official" aria-hidden="true"></i></a>   
+            <a href="https://www.linkedin.com/in/gaohaoyang" title="LinkedIn"><i class="fa fa-linkedin" aria-hidden="true"></i></a>  
+        </p>
+        <p>
+            本站总访问量<span id="busuanzi_value_site_pv"></span>次，本站访客数<span id="busuanzi_value_site_uv"></span>人次，本文总阅读量<span id="busuanzi_value_page_pv"></span>次
+        </p>
+        <p class="power">
+            <span>
+                Site powered by <a href="https://jekyllrb.com/">Jekyll</a> & <a href="https://pages.github.com/">Github Pages</a>.
+            </span>
+            <span>
+                Theme designed by <a href="https://github.com/Gaohaoyang">HyG</a>.
+            </span>
+        </p>
     </div>
-
-  </div>
-
 </footer>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
+    <div class="back-to-top">
+    <a href="#top" class="scroll">
+        <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </a>
+</div>
 
+    <script src=" /js/main.js " charset="utf-8"></script>
+    <script src=" /js/scroll.min.js " charset="utf-8"></script>
   </body>
 
 </html>
