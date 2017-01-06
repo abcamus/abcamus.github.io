@@ -3,6 +3,8 @@ layout:	post
 title:	"Linux Mint搭建Jekyll环境"
 date:	2017-01-03
 categories:	Linux
+tags: Linux
+excerpt: 介绍Linux Mint环境下搭建Jekyll环境，一些软件包的安装以及遇到的问题。
 ---
 Linux Mint下搭建Jekyll环境，首先要更新ruby，系统仓库里最新的是1.9.3，而Jekyll要求>=2.0
 
