@@ -7,40 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Micropython 介绍与编译</title>
-    <meta name="description" content="micropython是Damien George发明的运行在MCU之上的python，从项目主页可以下载。本文对micropython做了简单介绍，然后在Linux平台下编译通过。一、Micro Python语法特点:完整支持Python 3.4 语法  完整的Python词法分析器, 解析器,编译器，虚拟机和...">
+    <meta name="description" content="介绍micropython,在linux环境下，gcc和arm-none-linux-gnueabi-gcc编译通过。">
 
-    <link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
+<link rel="shortcut icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="icon" href="/favicon.ico?" type="image/x-icon">
     <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://at.alicdn.com/t/font_8v3czwksspqlg14i.css">
     <link rel="stylesheet" href="/css/main.css ">
-    <link rel="canonical" href="https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/">
-    <link rel="alternate" type="application/rss+xml" title="HyG" href="https://gaohaoyang.github.io/feed.xml ">
+    <link rel="canonical" href="http://localhost:4000/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/">
+    <link rel="alternate" type="application/rss+xml" title="abcamus" href="http://localhost:4000/feed.xml ">
 
 
-    <script>
-    // 百度统计代码
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "//hm.baidu.com/hm.js?cf8506e0ef223e57ff6239944e5d46a4";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-    </script>
-
-
-    <script>
-    // google analytics
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-72449510-4', 'auto');
-      ga('send', 'pageview');
-
-    </script>
 
 </head>
 
@@ -49,8 +26,8 @@
 
     <header id="top">
     <div class="wrapper">
-        <a href="/" class="brand">HyG</a>
-        <small>Front-end Dev Engineer</small>
+        <a href="/" class="brand">abcamus</a>
+        <small>System Engineer</small>
         <button id="headerMenu" class="menu"><i class="fa fa-bars"></i></button>
         <nav id="headerNav">
             <ul>
@@ -89,26 +66,6 @@
                         <a href="/tag/">
                         
                             <i class="fa fa-tags"></i>Tags
-                        </a>
-                    </li>
-                    
-                
-                    
-                    <li>
-                        
-                        <a href="/collection/">
-                        
-                            <i class="fa fa-bookmark"></i>Collections
-                        </a>
-                    </li>
-                    
-                
-                    
-                    <li>
-                        
-                        <a href="/demo/">
-                        
-                            <i class="fa fa-play"></i>Demo
                         </a>
                     </li>
                     
@@ -178,6 +135,9 @@
   <i class="fa fa-tags"></i>
   
     
+        <!--a href="/tag/#Python" title="Tag: Python" rel="tag">Python</a-->
+        <a href="/tag/#Python" title="Tag: Python" rel="tag">Python</a>
+    
   
 
 </span>
@@ -241,11 +201,15 @@
 <table>
   <thead>
     <tr>
-      <th>CPU</th>
-      <th>三星Exynos4412,四核Cortex-A9，主频为1.6GHz</th>
+      <th>部件</th>
+      <th>参数</th>
     </tr>
   </thead>
   <tbody>
+    <tr>
+      <td>CPU</td>
+      <td>三星Exynos4412,四核Cortex-A9，主频为1.6GHz</td>
+    </tr>
     <tr>
       <td>内存</td>
       <td>2GB 双通道 DDR3</td>
@@ -270,21 +234,79 @@
 </table>
 
 <h4 id="33-运行温度">3.3 运行温度</h4>
-<p>温度 | 在-20℃到70℃范围的高低温运行测试中运行良好
-–|–</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>名字</th>
+      <th>条件</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>温度</td>
+      <td>在-20℃到70℃范围的高低温运行测试中运行良好</td>
+    </tr>
+  </tbody>
+</table>
 
 <h4 id="34-其它">3.4 其它</h4>
-<p>视频编解码 | 支持MPEG-4/MPEG2、H.264/H263、VC-1、DivX的视频编解码1080p@30fps
-—|—
-图形加速 |支持2D，3D图形加速ARM Mali-400 MP Core
-存储 |支持SD/MMC/SDIO接口存储卡，最高支持32GB
-硬件编解码 |支持JPEG硬件编解码，最大支持8192×8192分辨率
-电磁屏蔽罩接口 |预留电磁屏蔽罩接口以及四个加固螺孔
-供电 |支持5V电压供电
-特点 |该核心板已经把4412处理器最难实现部分全部承担，可帮助用户轻松实现高端四核产品级设计！</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>项目</th>
+      <th>功能</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>视频编解码</td>
+      <td>支持MPEG-4/MPEG2、H.264/H263、VC-1、DivX的视频编解码1080p@30fps</td>
+    </tr>
+    <tr>
+      <td>图形加速</td>
+      <td>支持2D，3D图形加速ARM Mali-400 MP Core</td>
+    </tr>
+    <tr>
+      <td>存储</td>
+      <td>支持SD/MMC/SDIO接口存储卡，最高支持32GB</td>
+    </tr>
+    <tr>
+      <td>硬件编解码</td>
+      <td>支持JPEG硬件编解码，最大支持8192×8192分辨率</td>
+    </tr>
+    <tr>
+      <td>电磁屏蔽罩接口</td>
+      <td>预留电磁屏蔽罩接口以及四个加固螺孔</td>
+    </tr>
+    <tr>
+      <td>供电</td>
+      <td>支持5V电压供电</td>
+    </tr>
+    <tr>
+      <td>特点</td>
+      <td>该核心板已经把4412处理器最难实现部分全部承担，可帮助用户轻松实现高端四核产品级设计！</td>
+    </tr>
+  </tbody>
+</table>
+
 <h4 id="35-应用范围">3.5 应用范围</h4>
-<p>应用范围	| 家居控制平台、智能家居平台、健身器械操作平台、美容器械操作平台、医疗器械操作平台、智能仪表、仪器、触摸屏控制器、导航设备、车载DVD；智能广告控制终端、排队系统、广告机、楼宇对机、分机以及管理机等
-—|—</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>名字</th>
+      <th>举例</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>应用范围</td>
+      <td>家居控制平台、智能家居平台、健身器械操作平台、美容器械操作平台、医疗器械操作平台、智能仪表、仪器、触摸屏控制器、导航设备、车载DVD；智能广告控制终端、排队系统、广告机、楼宇对机、分机以及管理机等</td>
+    </tr>
+  </tbody>
+</table>
 
 <h3 id="四在linux平台上编译使用">四、在Linux平台上编译使用</h3>
 <p>进入minimal/，执行</p>
@@ -338,11 +360,8 @@ Type <span class="s2">"help()"</span> <span class="k">for </span>more informatio
             
             
                 
-            
+                    
                 
-            
-        
-            
             
         
             
@@ -359,8 +378,6 @@ Type <span class="s2">"help()"</span> <span class="k">for </span>more informatio
     <div class="nex">
 
         
-        <p><strong>下一篇</strong> <a href="/2017/01/04/test/">谈谈如何提高web服务器并发性能</a></p>
-        
     </div>
 </div>
 
@@ -368,12 +385,12 @@ Type <span class="s2">"help()"</span> <span class="k">for </span>more informatio
         <h2 id="comments">Comments</h2>
         
 <!-- 多说评论框 start -->
-<div class="ds-thread" data-thread-key="https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/" data-title="Micropython 介绍与编译" data-url="https://gaohaoyang.github.io/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/"></div>
+<div class="ds-thread" data-thread-key="http://localhost:4000/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/" data-title="Micropython 介绍与编译" data-url="http://localhost:4000/2017/01/04/Micropython-%E4%BB%8B%E7%BB%8D%E4%B8%8E%E7%BC%96%E8%AF%91/"></div>
 <!-- 多说评论框 end -->
 <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 <script type="text/javascript">
     var duoshuoQuery = {
-        short_name: "hygblog"
+        short_name: "abcamus"
     };
     (function() {
         var ds = document.createElement('script');
@@ -431,17 +448,13 @@ Type <span class="s2">"help()"</span> <span class="k">for </span>more informatio
     <div class="wrapper">
 
         <p class="description">
-             本站记录我前端之旅的沿途风景！ 
+             探索未来世界的可能性 
         </p>
         <p class="contact">
             Contact me at: 
-            <a href="https://github.com/Gaohaoyang" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a>  
-            <a href="mailto:gaohaoyang126@126.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>  
-            <a href="http://weibo.com/3115521wh" title="Weibo"><i class="fa fa-weibo" aria-hidden="true"></i></a>  
-            <a href="https://www.zhihu.com/people/gaohaoyang" title="Zhihu"><i class="iconfont icon-daoruzhihu"></i></a>  
-            <a href="https://twitter.com/gaohaoyang126" title="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>  
-            <a href="https://www.facebook.com/gaohaoyang.water" title="Facebook"><i class="fa fa-facebook-official" aria-hidden="true"></i></a>   
-            <a href="https://www.linkedin.com/in/gaohaoyang" title="LinkedIn"><i class="fa fa-linkedin" aria-hidden="true"></i></a>  
+            <a href="https://github.com/abcamus" title="GitHub"><i class="fa fa-github" aria-hidden="true"></i></a>  
+            <a href="mailto:abcamus_dev@163.com" title="email"><i class="fa fa-envelope-o" aria-hidden="true"></i></a>  
+            <a href="http://weibo.com/十八骑_NO18" title="Weibo"><i class="fa fa-weibo" aria-hidden="true"></i></a>       
         </p>
         <p>
             本站总访问量<span id="busuanzi_value_site_pv"></span>次，本站访客数<span id="busuanzi_value_site_uv"></span>人次，本文总阅读量<span id="busuanzi_value_page_pv"></span>次
