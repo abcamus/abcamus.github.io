@@ -97,7 +97,6 @@ build/firmware.elf
 MicroPython v1.8.6-156-gadf3cb5-dirty on 2016-12-23; minimal with exynos4412
 Type "help()" for more information.
 >>> 
-```
 {% endhighlight %}
 
 ### 五、交叉编译
