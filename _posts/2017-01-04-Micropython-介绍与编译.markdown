@@ -1,10 +1,13 @@
 ---
 layout:	post
-title:	"Micropython 介绍与编译"
+title:	"Micropython: 介绍"
 date:	2017-01-04
 categories:	Python
 tags: Python
-excerpt: 介绍micropython,在linux环境下，gcc和arm-none-linux-gnueabi-gcc编译通过。
+excerpt: 介绍micropython, 主要是一下几个方面：
+1. Micro Python的发展情况，包括语法特点，代码结构，支持的硬件。
+2. 介绍了本项目的开发平台： 基于exynos-4412 SoC的开发板。
+3. 最后初步实验，完成Linux平台下的测试，然后解决交叉编译过程中出现的问题。
 ---
 micropython是Damien George发明的运行在MCU之上的python，从[项目主页]可以下载。
 
