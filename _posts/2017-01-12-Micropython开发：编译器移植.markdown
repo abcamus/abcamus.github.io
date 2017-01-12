@@ -58,7 +58,7 @@ GC: total: 1984, used: 368, free: 1616
 ### 2-2 启动代码实现
 在minimal中的main.c文件实现了_start函数，用来对stm32硬件做初始化，为了节省硬件相关的调试时间，我们直接利用了uboot，因为uboot启动后已经初始化好了exynos 4412的时钟，dram控制器等重要部分。启动代码最终实现为
 
-{% highlight asm %}
+```c
 .global _start
 
 _start:
@@ -93,7 +93,7 @@ loop:
 
 halt:
 	b halt
-{% endhighlight %}
+```
 
 ### 2-3 指令集兼容
 Micropython使用的是thumb指令集，容易理解了，因为python最终编译成字节流。要做相应的编译器配置，包括uboot也要修改。参考知识储备中的第一条。
@@ -101,7 +101,7 @@ Micropython使用的是thumb指令集，容易理解了，因为python最终编�
 ### 2.4 修改内存分布
 调整链接脚本，因为我们没有用到flash，直接都映射到dram中，这里映射了起始的16MB。代码段示例如下：
 
-```
+```shell
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_start)
@@ -141,7 +141,7 @@ SECTIONS
 ### 2.5 交互界面
 修改uart_core.c文件，做好寄存器兼容。同样的修改发送接收函数即可。
 
-{% highlight c %}
+```c
 #if MICROPY_MIN_USE_EXYNOS4412
 /* baudrate rest value */
 union br_rest {
@@ -169,7 +169,7 @@ typedef struct {
 
 #define SAMSUNG_UART2 ((periph_uart_t*)0x13820000)
 #endif
-{% endhighlight %}
+```
 
 ## 三 总结与展望
 这次开发经历了三天左右的时间，从周一到周三。相比于知识，思路才是最重要的，看最近alphogo又化身master连战60名中日韩围棋界高手，其实足以证明人的思考其实是很有限的。现在很多面试者会被问知道xxx，其实不知道也并无关系，关键看在不知道的情况下如何才能去发现并逐步解决未知的问题。这个才是最重要的。
