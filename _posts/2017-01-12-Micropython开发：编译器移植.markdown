@@ -16,7 +16,7 @@ excerpt: 经过了几天的努力，Micropython编译器终于跑起来了，很
 ### 1-1 知识储备
 
 1. [arm gcc编译器相关的知识]
-2. 链接脚本相关的知识
+2. [链接脚本相关的知识]
 3. Makefile相关的知识，参考《GNU make中文手册》
 4. Exynos 4412 硬件特别是uart和mem映射相关，可以参考：[Exynos4412时钟模块以及UART时钟配置]以及芯片手册。
 5. boot相关的知识：[Exynos 4412 u-boot 调试]以及[Exynos4412 sd卡启动uboot]
@@ -179,6 +179,7 @@ typedef struct {
 
 [micropython:介绍与编译]: http://blog.csdn.net/abcamus/article/details/53842722
 [arm gcc编译器相关的知识]: http://blog.csdn.net/abcamus/article/details/54023051
+[链接脚本相关的知识]: http://blog.csdn.net/abcamus/article/details/53509720
 [Exynos4412时钟模块以及UART时钟配置]: http://blog.csdn.net/abcamus/article/details/53224562
 [Exynos 4412 u-boot 调试]: http://blog.csdn.net/abcamus/article/details/53424619
 [Exynos4412 sd卡启动uboot]: http://blog.csdn.net/abcamus/article/details/53084947
