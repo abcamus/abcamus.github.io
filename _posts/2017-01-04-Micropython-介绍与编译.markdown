@@ -1,11 +1,14 @@
 ---
 layout:	post
-title:	"Micropython: 介绍"
+title:	"Micropython开发: 介绍"
 date:	2017-01-04
 categories:	Micropython
 tags: Micropython
 excerpt: 介绍micropython, 包括以下几个方面：1. Micro Python的发展情况，语法特点，代码结构，支持的硬件。2. 介绍了本项目的开发平台： 基于exynos-4412 SoC的开发板。3. 最后初步实验，完成Linux平台下的测试，然后解决交叉编译过程中出现的问题。
 ---
+* titles
+{:toc}
+
 micropython是Damien George发明的运行在MCU之上的python，从[项目主页]可以下载。
 
 本文对micropython做了简单介绍，然后在Linux平台下编译通过。

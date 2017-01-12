@@ -7,6 +7,9 @@ tags: Linux
 excerpt: 本文介绍如何给Exynos 4412 SoC移植Linux内核，所有过程亲自实践，真实有效。
 ---
 
+* titles
+{:toc}
+
 本文介绍如何给Exynos 4412 SoC移植Linux内核，所有过程亲自实践，真实有效。
 
 项目名称 | 版本说明

@@ -5,6 +5,8 @@ date:   2017-01-02 21:22:37 +0800
 categories: Linux
 excerpt: ram disk中的file system叫做initrd，全名叫做initial ramdisk。如何创建initial ramisk? 如何配置以及如何使用呢？这篇文章讲的就是这些
 ---
+* titles
+{:toc}
 
 ## 一、initrd
 ram disk中的file system叫做initrd，全名叫做initial ramdisk。
