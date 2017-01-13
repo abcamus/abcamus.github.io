@@ -22,12 +22,12 @@ busybox | 1.26.1
 ## 第一部分：代码的使用过程介绍
 
 ### 1.1 使用uboot
-参考http://blog.csdn.net/abcamus/article/details/53424619， 下载源代码后，编译生成uboot镜像并烧写到sd卡中。
+参考 [uboot调试]， 下载源代码后，编译生成uboot镜像并烧写到sd卡中。
 
-{% highlight shell %}
+```shell
 host > ./build.sh
 host > sudo ./mkuboot /dev/sdc		#modify the dev name yourself
-{% endhighlight %}
+```
 
 ### 1.2 使用Linux kernel
 编译内核镜像并烧写到sd卡中
@@ -39,11 +39,11 @@ host > sudo ./burnimage.sh
 
 ### 1.3 启动命令
 
-{% highlight shell %}
+```shell
 host # mmc read 40007000 1000 3000
 host # mmc read 41000000 800 a0
 host # bootm 40007000 - 41000000
-{% endhighlight %}
+```
 
 ### 1.4 系统启动日志展示
 
@@ -52,7 +52,7 @@ host # bootm 40007000 - 41000000
 ## 第二部分：uboot/kernel/rootfs的配置
 
 ### 2.1 uboot配置
-下面给出部分uboot配置， 具体过程参见uboot调试一文： http://blog.csdn.net/abcamus/article/details/53424619
+下面给出部分uboot配置， 具体过程参见[uboot调试]一文。
 因为提供了源代码，所以就不详细介绍了。最重要的是bootargs参数。
 
 表2-1 bootargs配置
@@ -65,7 +65,7 @@ bootargs | bootargs=console=ttySAC2,115200n8 earlyprintk
 内核的defconfig文件为landrover_defconfig，根据exynos_defconfig修改而来； dts文件根据exynos4412-tiny4412.dts修改，调整了compatible参数，只保留了一个okay的uart。其他的基本都是默认的。直接编译即可，因为内核太庞大，不方便提供源码，有需要的可以联系我。联系方式见博客"about"栏目。
 
 ### 2.3 根文件系统配置
-参考我的博文《关于initrd和initramfs》： http://blog.csdn.net/abcamus/article/details/54143900。 按照上面的步骤来就可以。
+参考我的博文[关于initrd和initramfs]。 按照上面的步骤来就可以。
 
 busybox的配置网上博客一大堆，百度一搜就能搜到，这里就不讲了。
 
@@ -78,7 +78,7 @@ busybox的配置网上博客一大堆，百度一搜就能搜到，这里就不�
 ### 附录一
 启动日志
 
-{% highlight shell %}
+```shell
 LANDROVER # bootm 40007000 - 41000000
 ## Current stack ends at 0x7ae65698 do_bootm_states:591  started.
 *  kernel: cmdline image address = 0x40007000
@@ -240,4 +240,7 @@ Please press Enter to activate this console.
 [root@osee ]#
 [root@osee ]#
 [root@osee ]#
-{% endhighlight %}
+```
+
+[uboot调试]: http://blog.csdn.net/abcamus/article/details/53424619
+[关于initrd和initramfs]: http://blog.csdn.net/abcamus/article/details/54143900

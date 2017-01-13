@@ -15,7 +15,7 @@ ram disk中的file system叫做initrd，全名叫做initial ramdisk。
 
 ### 如何创建initial ramisk
 
-```
+```shell
 host > dd if=/dev/zero of=/dev/ram0 bs=1k count=<count>
 host > mke2fs -vm0 /dev/ram0 <count>
 host > tune2fs -c 0 /dev/ram0
@@ -27,7 +27,7 @@ host > dd if=/dev/ram0 bs=1k count=<count> | gzip -v9 > ramdisk.gz
 ### 创建完之后还要添加哪些东西
 还要添加一些必要的文件让他工作，可能是库，应用程序等。例如busybox。
 
-```
+```shell
 host $ mkdir mnt
 host $ gunzip ramdisk.gz
 host $ mount -o loop ramdisk mnt/
@@ -38,7 +38,7 @@ host $ gzip -v9 ramdisk
 
 ### 内核如何支持initial ramdisk
 
-```
+```shell
 #
 # General setup
 #
@@ -60,7 +60,7 @@ CONFIG_BLK_DEV_RAM_BLOCKSIZE=1024
 
 ### 告诉uboot怎么找到她
 
-```
+```shell
 UBOOT # tftp 0x87000000 ramdisk.gz
 UBOOT # erase 0x2200000 +0x<filesize>
 UBOOT # cp.b 0x87000000 0x2200000 0x<filesize>
@@ -71,7 +71,8 @@ UBOOT # saveenv
 ```
 
 >注意： ramdisk 中要有ram0节点
-```
+
+```shell
 brw-rw---- 1 root disk 1, 0 Sep 11 1999 /dev/ram0
 ```
 
@@ -83,7 +84,7 @@ initramfs相当于把initrd放进了内核，通过cpio（这是一个文件处�
 ### 如何创建
 比initrd简单多了
 
-```
+```shell
 host > mkdir target_fs
 host > ... copy stuff you want to have in initramfs to target_fs...
 ```
@@ -92,20 +93,20 @@ host > ... copy stuff you want to have in initramfs to target_fs...
 >1. initramfs中的cpio系统不能处理hard link，用soft link
 >2. 顶层必须有个init程序，这是kernel要用的，可以这么做
 
-```
+```shell
 /init -> /bin/busybox
 ```
 
 接着
 
-```
+```shell
 host > cd target_fs
 host > find . | cpio -H newc -o > ../target_fs.cpio
 ```
 
 ### 内核支持
 
-```
+```shell
 #
 # General setup
 #
@@ -137,4 +138,6 @@ CONFIG_BLK_DEV_RAM_BLOCKSIZE=1024
 3. 在烧写的时候，显然一个镜像更容易管理。
 
 #### 参考文献
-http://processors.wiki.ti.com/index.php/Initrd
+[Initrd Wiki]
+
+[Initrd Wiki]: http://processors.wiki.ti.com/index.php/Initrd
