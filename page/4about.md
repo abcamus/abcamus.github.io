@@ -9,8 +9,6 @@ type: page
 * content
 {:toc}
 
-## 关于我
-
 ## 联系我
 
 * [GitHub]()
@@ -22,7 +20,7 @@ type: page
 * [豆瓣]()
 
 ## 关于本站
-感谢gaohaoyang同学制作这个模板。
+本站参考自gaohaoyang同学制作的模板，链接在页脚上。
 
 **若您想使用这个 jekyll 博客主题，请访问：[https://github.com/abcamus/abcamus.github.io](https://github.com/abcamus/abcamus.github.io)**
 
