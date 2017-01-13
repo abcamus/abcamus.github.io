@@ -1,17 +1,17 @@
 ---
 layout:	post
-title:	"Micropython开发： 编译器移植"
+title:	"Micropython开发： 解释器移植"
 date:	2017-01-12
 categories:	Micropython
 tags: Micropython
-excerpt: 经过了几天的努力，Micropython编译器终于跑起来了，很是兴奋，把过程记在这里，很多文章还在csdn上，后续会搬迁过来。
+excerpt: 经过了几天的努力，Micropython repl终于跑起来了，很是兴奋，把过程记在这里，很多文章还在csdn上，后续会搬迁过来。
 ---
 
 * 目录
 {:toc}
 
 ## 一 概述
-[micropython:介绍与编译] 一文介绍了Micropython的语法特点，当前的应用平台以及在linux下的试用。这篇文章接着介绍如何将Micropython编译器移植到exynos 4412平台下，让他工作起来。
+[micropython:介绍与编译] 一文介绍了Micropython的语法特点，当前的应用平台以及在linux下的试用。这篇文章接着介绍如何将Micropython编译器移植到exynos 4412平台下，运行repl。
 
 ### 1-1 知识储备
 
