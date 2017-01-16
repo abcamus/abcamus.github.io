@@ -1,0 +1,33 @@
+<style>
+    body {
+        margin: 0; /*一定的初始化是必要的*/
+    }
+    nav {
+        position: fixed; /*因为是一个全页面的竖排导航，所以必须设置为固定定位*/
+        /*同时因为固定定位是把标签从文档中直接拿出来，所以布局其他元素时要用margin留出外边距，
+          必要时可以设置导航栏为固定宽度保证不会出现白边*/
+        background-color: #2f2f2f; 
+        height: 100%; /*让导航栏与页面同高*/
+        top: 0; left: 0; /*设置了固定定位后这两个属性才起作用*/
+    }
+        nav a { /*设置每个a标记的display属性为block，这样方便控制每个a标记的样式*/
+            font-weight: bold;
+            font-size: 18px;
+            color: #ffffff;
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+        }
+        nav div a:first-child { /*通过伪类来控制活动页面的a标记的样式，作为静态页面每个页面都要写不同的css控制样式，
+        所以使用不方便的话可以使用class来控制样式*/
+            box-shadow: -1px 0.5px 4px 1px #777 inset;
+            background-color: #e58c7c;
+        }
+        nav div a:hover {
+                background-color: #e58c7c;
+        }
+        nav div a:active {
+            box-shadow: -1px 0.5px 4px 1px #777 inset;
+            background-color: #e58c7c;
+        }
+</style>
