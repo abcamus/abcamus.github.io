@@ -1,0 +1,135 @@
+---
+layout: post
+title:  "bitmap详解 "
+date:   2016-09-05 21:22:37 +0800
+categories: 嵌入式开发
+tags: Linux 位图 内存管理
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+
+## 1 含义
+顾名思义，bitmap就是指位映射，通过给比特位赋予含义来实现特定的功能，主要是用来管理资源。不同的映射，其每一位代表的含义不同。以dma内存映射为例，每一bit就代表一个内存页。从数据结构上看，bitmap是一个数组，其类型为长整形（long bitmap[]）。
+
+## 2 在dma预留内存分配机制中的应用。
+### 2.1 预留内存
+在内核刚启动后，通过调用`dma_declare_coherent_memory()`来申请预留dma内存，其原型为
+
+* **初始化和保存**
+
+```c
+int dma_alloc_coherent_memory(struct device *dev, phys_addr_t phys_addr, amd_addr_t device_addr, size_t size, int flags);
+```
+进入`dma_alloc_coherent_memory`后，通过`dma_init_coherent_memory()`来初始化一个`struct dma_coherent_dma`类型结构体mem。然后将mem变量保存在`dev->dma_mem`中。mem中保存的`virt_mem = ioremap(phys_addr, size)`
+
+* **bitmap生成**
+
+```c
+int pages = size >> PAGE_SHIFT;
+int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
+...
+dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+...
+```
+从以上代码看出bitmap是按照长整型为访问粒度进行访问的(对应`long bitmap[]`，兼容不同机器架构的地址对齐访问，提高访存效率)，其中每一位都代表一个内存页，所以可以认为通过该bitmap访问的内存是划段的，段落大小等于`BITS_PER_LONG*PAGE_SIZE`，在具体寻址的时候先找到段落然后找到段内偏移即可确定是哪个内存页。
+
+### 2.2 分配内存
+分配内存接口为`dma_alloc_coherent()`，该接口首先检查是否有预留内存`if (dev->dma_mem != NULL) ...`。如果有预留的话调用`dma_alloc_from_coherent()`其原型为
+
+```c
+int dma_alloc_from_coherent(struct device *dev, ssize_t size,
+				       dma_addr_t *dma_handle, void **ret);
+```
+
+* 分配算法的流程
+
+1. 获得需要申请的内存大小的阶数n，表示需要申请2^n个内存页
+EX: 假如PAGE_SIZE = 4KB， size = 25KB = 0x6400 Bytes = b0110_0100_0000_0000 Bytes = b0110 pages，那么n = 3, 2^n = 2^3 = 8 pages = 32KB。实际上size要减一再右移PAGE_SHIFT得到内存页数量。
+2. 在bitmap中寻找连续的2^n个0比特位。等价于定位2^n个连续比特位的起始位置
+
+```c
+int order = get_order(size);
+int pageno;
+...
+pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
+...
+```
+
+```c
+int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order)
+{
+	unsigned int pos, end;		/* scans bitmap by regions of size order */
+
+    // 从bitmap低位开始逐个搜索连续的2^n比特
+	for (pos = 0 ; (end = pos + (1U << order)) <= bits; pos = end) {
+	   // 检查是否找到，如果找到，返回起始比特位置，否则继续，直到遍历整个bitmap
+		if (!__reg_op(bitmap, pos, order, REG_OP_ISFREE))
+			continue;
+		__reg_op(bitmap, pos, order, REG_OP_ALLOC);
+		return pos;
+	}
+	return -ENOMEM;
+}
+```
+其中__reg_op()针对bitmap中的某一段内容进行操作， 以`__reg_op(bitmap, pos, order, REG_OP_ISFREE)`为例， 传入bitmap, 起始位置pos，尺寸order， 操作码REG_OP_ISFREE。用来检查从pos开始的数量为1 << order的比特位是否为0。
+
+```c
+static int __reg_op(unsigned long *bitmap, unsigned int pos, int order, int reg_op)
+{
+	int nbits_reg;		/* number of bits in region */
+	int index;		/* index first long of region in bitmap */
+	int offset;		/* bit offset region in bitmap[index] */
+	int nlongs_reg;		/* num longs spanned by region in bitmap */
+	int nbitsinlong;	/* num bits of region in each spanned long */
+	unsigned long mask;	/* bitmask for one long of region */
+	int i;			/* scans bitmap by longs */
+	int ret = 0;		/* return value */
+
+	/*
+	 * Either nlongs_reg == 1 (for small orders that fit in one long)
+	 * or (offset == 0 && mask == ~0UL) (for larger multiword orders.)
+	 */
+	nbits_reg = 1 << order;             // 获得内存页申请数量
+	index = pos / BITS_PER_LONG;        // 计算bitmap数组起始下标
+	offset = pos - (index * BITS_PER_LONG);     // 计算掩码的偏移值
+	nlongs_reg = BITS_TO_LONGS(nbits_reg);      // 申请的内存页数量转换成unsigned long长度，用于访问unsigned long bitmap[]
+	nbitsinlong = min(nbits_reg,  BITS_PER_LONG);       // 计算掩码长度
+
+	/*
+	 * Can't do "mask = (1UL << nbitsinlong) - 1", as that
+	 * overflows if nbitsinlong == BITS_PER_LONG.
+	 */
+	 // 下面三行计算掩码，用来判别当前访问的比特位序列(对应内存页)是否free
+	mask = (1UL << (nbitsinlong - 1)); 
+	mask += mask - 1;
+	mask <<= offset;
+
+	switch (reg_op) {
+	case REG_OP_ISFREE:
+		for (i = 0; i < nlongs_reg; i++) {
+			if (bitmap[index + i] & mask)
+				goto done;
+		}
+		ret = 1;	/* all bits in region free (zero) */
+		break;
+
+	case REG_OP_ALLOC:
+		for (i = 0; i < nlongs_reg; i++)
+			bitmap[index + i] |= mask;
+		break;
+
+	case REG_OP_RELEASE:
+		for (i = 0; i < nlongs_reg; i++)
+			bitmap[index + i] &= ~mask;
+		break;
+	}
+done:
+	return ret;
+}
+```
+### 2.3 释放内存
+分配内存的反向操作，将bitmap中置1的比特位清零。
+

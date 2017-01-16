@@ -1,0 +1,408 @@
+---
+layout: post
+title:  "arm cache行为模型"
+date:   2016-09-23 21:22:37 +0800
+categories: 嵌入式开发
+tags: arm cache
+excerpt: 贴一段自己写的cache行为仿真代码， 针对ARM Cortex A5核，未经过严格验，主要是为了理解cache的工作机制。
+---
+
+* menu
+{:toc}
+
+### 贴一段自己写的cache行为仿真代码， 针对ARM Cortex A5核，未经过严格验证
+```c
+/*
+ * This is a simulation program
+ * for the ARM Cortex-A5 L1 DCache
+ *
+ * Cache Structure Description:
+ * 4-way set L1 data cache, total size = 32KB, with each cache data line = 8 words
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef		unsigned char		UINT8;
+typedef		unsigned short		UINT16;
+typedef 	unsigned int		UINT32;
+typedef		unsigned long		UINT64;
+
+// L1 DCache parameters of ARM Cortex-A5
+#define DATA_CACHE_SIZE			32*1024		// 32KB
+#define DATA_LINE_SIZE			8			// 8 words(= 32 bytes)
+#define CACHE_WAYS_NUM			4
+#define CACHE_LINE_EACH_WAY		(DATA_CACHE_SIZE/(DATA_LINE_SIZE*CACHE_WAYS_NUM*sizeof(UINT32)))
+
+// cacheline bit masks
+#define 	CACHE_LINE_SIZE			(DATA_LINE_SIZE+1)		// words
+#define 	VALID_BIT				(1 << 1)
+#define 	DIRTY_BIT				(1 << 0)
+
+// address bit masks
+#define 	ADDR_TAGS				13
+#define 	TAGS_BITS				(0xfffe << ADDR_TAGS)
+#define 	ADDR_INDEX				5
+#define 	INDEX_BITS				(0xff << ADDR_INDEX)
+#define		ADDR_WORD				2
+#define		WORD_BITS				(0x7 << ADDR_WORD)
+#define 	ADDR_BYTE				(0x3 << 0)
+
+/* simulated L1 DCache Topology
+ * index*CACHE_LINE_SIZE = the tag/v/d of one cacheline
+ * the followd 8 words are data registers
+ * LSW(the least significant word): dirty bit
+ * MSW(the most significant word): valid bit
+ */
+UINT32 CacheTopology[CACHE_WAYS_NUM][CACHE_LINE_SIZE*CACHE_LINE_EACH_WAY];
+
+/*
+ * simulated DRAM Topology
+ */
+#define 	DRAM_SIZE		0x10000		// dram size = 64K Words = 256K Bytes
+#define 	DRAM_BASE		0x0000		// dram address = DRAM_BASE + offset in DramTopology
+UINT32 DramTopology[DRAM_SIZE] = {0};
+
+// cache policy configuration
+#define READ_ALLOC_MODE		(0x00)
+#define RDWT_ALLOC_MODE		(0x01)
+#define WRITE_THROUGH		(0x00)
+#define WRITE_BACK			(0x01)
+
+static void do_allocation();
+static void do_replacement(void);
+static void do_write(void);
+static void do_readhit(void);
+static void do_writehit(void);
+static UINT8 findCmdIndex(UINT8 *);
+typedef static void (*func_t)(void);
+
+/*
+ * rdwr tells whether it is a read or write
+ * 0 = read, 1 = write
+ *
+ * hit: whether this operation hit or miss the cache
+ * 0 = miss, 1 = hit
+ *
+ * lineIndex: cacheline index in a way
+ *
+ * lineWay: cacheline index in a set
+ *
+ * hit: hit/miss flag of DCache
+ * 0 = miss, 1 = hit
+ *
+ * valid: valid flag of DCache
+ * 0 = not valid, 1 = valid
+ *
+ * allocation mode
+ * 0 = read allocation, 1 = normal
+ *
+ */
+struct cache_sts {
+	UINT32 rdwr;
+	UINT32 lineWord;
+	UINT32 lineIndex;
+	UINT32 lineTag;
+	UINT32 lineWay;
+	UINT32 hit;
+	UINT32 valid;
+	UINT32 dirty;
+	UINT32 alloc_mode;
+	UINT32 write_mode;
+	UINT32 addr;
+	UINT32 data;
+} cache_sts_t = {
+		.rdwr = 0,
+		.hit = 0,
+		.alloc_mode = READ_ALLOC_MODE,
+};
+
+/*
+ * fullfill a cacheline on a read or flush on a write
+ */
+static void do_cacheline_fill_flush(UINT32 *cacheline_base)
+{
+	switch (cache_sts_t.rdwr) {
+		case 0:
+			// do cacheline fill on a read
+			memcpy(cacheline_base, &DramTopology[DRAM_BASE+cache_sts_t.addr], CACHE_LINE_SIZE*sizeof(UINT32));
+			break;
+		case 1:
+			// do cacheline flush on a write
+			memcpy(&DramTopology[DRAM_BASE+cache_sts_t.addr], cacheline_base, CACHE_LINE_SIZE*sizeof(UINT32));
+			break;
+		default:
+			printf("Unknown operation.\n");
+			break;
+	}
+}
+
+/*
+ * CACHE Allocation Policy:
+ * READ ALLOCATION POLICY: cache allocation and linefill only happens
+ * on a read. If a write misses the cache, it goes to the next level of
+ * hierarchy with no effect on cache.
+ * WRITE ALLOCATION POLICY: cache allocation and linefill happens both
+ * on read and write, so it might be more accurately called read-write
+ * cache allocation policy
+ *
+ */
+static void do_allocation()
+{
+	UINT32 i;
+	UINT32 lineIndex = cache_sts_t.lineIndex;
+
+	switch(cache_sts_t.alloc_mode) {
+	case READ_ALLOC_MODE:
+	{
+		switch (cache_sts_t.rdwr) {
+			case 0:
+				// alloc a cacheline
+				for (i = 0; i < CACHE_WAYS_NUM; ++i) {
+					if (!(CacheTopology[i][lineIndex] & VALID_BIT)) {
+						// alloc this invalidated line
+						printf("alloc a invalidated cacheline as a new line.\n");
+						CacheTopology[i][lineIndex*CACHE_LINE_SIZE] &= ~(cache_sts_t.lineTag << ADDR_TAGS);
+						CacheTopology[i][lineIndex*CACHE_LINE_SIZE] |= (cache_sts_t.lineTag << ADDR_TAGS);
+						printf("read data from DRAM into this new line.\n");
+						do_cacheline_fill_flush(&CacheTopology[i][lineIndex*CACHE_LINE_SIZE+1]);
+						cache_sts_t.data = CacheTopology[i][lineIndex*CACHE_LINE_SIZE+1+cache_sts_t.lineWord];
+						return;
+					}
+				break;
+			case 1:
+				printf("write data in read allocation mode.\n");
+				DramTopology[DRAM_BASE+cache_sts_t.addr] = cache_sts_t.data;
+				break;
+			default:
+				break;
+				}
+		}
+	}
+		break;
+	case RDWT_ALLOC_MODE:
+		/*
+		 * always allocate a cacheline first if data misses in cache.
+		 */
+		break;
+	}
+
+}
+
+/*
+ * select one(called victim) of the cache lines in the set.
+ * Strategies:
+ * 1. Round-Robin/Cyclic	*
+ * 2. Pseudo-random
+ * 3. Last Recently Used(LRU)
+ */
+static void do_replacement()
+{
+
+}
+
+/*
+ * Two policies:
+ * Write-Through or Write-Back
+ *
+ */
+static void do_write()
+{
+
+}
+
+static UINT8 findCmdIndex(UINT8 *cmd)
+{
+	UINT8 *cmdlist[] = {
+			"rd",
+			"wd"
+			"\0"
+	};
+
+	UINT8 cmdindex;
+	for (cmdindex = 0; cmdindex < sizeof(cmdlist)/sizeof(UINT8 *); cmdindex += 1)
+		if (!strcmp(cmd, cmdlist[cmdindex]))
+			return cmdindex;
+	return -1;
+}
+
+/* cache hit on a read
+ * V/D =
+ * 10: return dcache value; 11: same as 10 except data is dirty
+ * 00: read data from main memory into dcache, do validation and return new data
+ * 01: as 00
+ *
+ */
+static void do_readhit()
+{
+	switch (cache_sts_t.valid) {
+		case 0:
+			printf("update dcache value from main memory.\n");
+			break;
+		case 1:
+			printf("get value in the dcache.\n");
+			cache_sts_t.data = cache_sts_t.lineWord;
+			break;
+		default:
+			printf("Unsupported Status.\n");
+			break;
+	}
+}
+
+/*
+ * cache hit on a write
+ * V/D =
+ * 10: if write through, just write data to dcache and dram; if write back, just update to dcache.
+ * 11: clean cache data, then write data into dcache in write back mode. In write through mode, do as 10
+ * 00: 	if write-through, write data to dcache and flush, do validation
+ * 		if write-back, write data to dcache, do validation, set dirty
+ * 01: as 00
+ *
+ */
+static void do_writehit()
+{
+	switch (cache_sts_t.valid) {
+		case 0:
+		{
+			printf("write data to dcache.\n");
+			//TODO: do validation
+			if (cache_sts_t.write_mode == WRITE_THROUGH) {
+				printf("write data to dram.\n");
+				return;
+			}
+			//TODO: set dirty
+		}
+			break;
+		case 1:
+		{
+			switch (cache_sts_t.dirty) {
+				case 1:
+					printf("clean dcache data.\n");
+				case 0:
+					printf("update data to dcache.\n");
+					if (cache_sts_t.write_mode == WRITE_THROUGH)
+						printf("write data to dram.\n");
+					break;
+
+				default:
+					printf("unsupported status.\n");
+					break;
+			}
+		}
+			break;
+		default:
+			break;
+	}
+}
+
+static void do_lookup(UINT32 addr)
+{
+	UINT32 lineIndex = (addr & INDEX_BITS) >> ADDR_INDEX;
+	UINT32 lineIndex = cache_sts_t.lineIndex = (addr & INDEX_BITS) >> ADDR_INDEX;
+	UINT32 lineTag = cache_sts_t.lineTag = (addr & TAGS_BITS) >> ADDR_TAGS;
+
+	// search the cache set
+	UINT32 i;
+	for (i = 0; i < CACHE_WAYS_NUM; i++)
+		//find the cacheline in the set
+		if ((CacheTopology[i][lineIndex] & TAGS_BITS) >> ADDR_TAGS == lineTag) {
+			cache_sts_t.hit = 1;
+			cache_sts_t.lineWay = i;
+			cache_sts_t.dirty = CacheTopology[i][lineIndex] & DIRTY_BIT;
+			if (CacheTopology[i][lineIndex] & VALID_BIT) {
+				cache_sts_t.valid = 1;
+				//TODO: should return the cached data
+			}
+			else {
+				/* not valid
+				 * TODO: allocate this line
+				 * read data from next hierarchy of memory
+				 */
+				cache_sts_t.valid = 0;
+			}
+		}
+
+	{	// if not hit accordong to the lineTag
+		cache_sts_t.hit = 0;
+	}
+
+	switch (cache_sts_t.hit) {
+		case 0:
+			/* cache miss
+			 */
+			do_allocation();
+			break;
+		case 1:
+		{
+			switch (cache_sts_t.rdwr) {
+				case 0: do_readhit();
+					break;
+				case 1: do_writehit();
+					break;
+				default:
+					printf("Unknown operation.\n");
+					break;
+			}
+		}
+
+			break;
+
+		default:
+			printf("Error Condition.\n");
+			break;
+	}
+}
+
+/*
+ * read the data address, three part of cache operation as follows:
+ * 1. do_allocation
+ * 2. do_replacement
+ * 3. do_write
+ * This address is from the output of MMU as ARM Cortes-A5 uses PIPT scheme
+ *
+ * address bit fields:
+ * bits[31:13] = Tag
+ * bits[12:5] = Set(=index)
+ * bits[4:2] = Word
+ * bits[1:0] = Byte
+ */
+int main(int argc, char *argv[])
+{
+	UINT32	address;
+	UINT32	value;
+	UINT8	*cmd, index;
+	UINT32	i,j;
+
+	for (i = 0; i < CACHE_WAYS_NUM; i+=1)
+		for (j = 0; j < CACHE_LINE_EACH_WAY; j++) {
+			// clean and invalidate dcache
+			CacheTopology[i][j] &= ~DIRTY_BIT;
+			CacheTopology[i][j] |= VALID_BIT;
+		}
+
+	while (1) {
+		cmd = argv[1];
+		index = findCmdIndex(cmd);
+
+		switch (index) {
+		case 0: 	if (argc != 3) {printf("parameter error while reading.\n"); return -1;}
+					else {cache_sts_t.rdwr = 0; address = atoi(argv[2]);}
+		break;
+
+		case 1: 	if (argc != 4) {printf("parameter error while writing.\n"); return -1;}
+					else {cache_sts_t.rdwr = 1; address = atoi(argv[2]); value = atoi(argv[3]);}
+		break;
+
+		default:
+			printf("parameter not supported.\n");
+			exit(-1);
+		}
+
+		printf("%s on address 0x%x\n", cmd, address);
+		do_lookup(address);
+	}
+
+	return 0;
+}
+
+```

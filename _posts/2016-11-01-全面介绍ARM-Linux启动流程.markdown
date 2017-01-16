@@ -3,7 +3,7 @@ layout: post
 title:  "全面介绍ARM Linux启动流程"
 date:   2016-11-01 21:22:37 +0800
 categories: 嵌入式开发
-tags: arm linux
+tags: arm Linux
 excerpt: 介绍arm裸机启动Linux过程，涉及中断处理，I/O，内存映射相关知识。
 ---
 

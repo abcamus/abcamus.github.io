@@ -2,8 +2,8 @@
 layout: post
 title:  "uboot 设备树： 基本概念和源码介绍"
 date:   2016-12-26 21:22:37 +0800
-categories: uboot
-tags: uboot
+categories: 嵌入式开发
+tags: uboot 设备树 
 excerpt: 介绍dts文件的基本概念，帮助理解dtb的编码和解码
 ---
 

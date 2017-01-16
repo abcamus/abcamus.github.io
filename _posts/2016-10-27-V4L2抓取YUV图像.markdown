@@ -1,0 +1,63 @@
+---
+layout: post
+title:  "V4L2抓取YUV图像 "
+date:   2016-10-27 21:22:37 +0800
+categories: 嵌入式开发
+tags: Linux V4L2
+excerpt: 本文实现了一个简单应用，通过V4L2驱动，抓取usb摄像头的YUV图像，运行在Linux Mint 17上， 代码参考自 https://linuxtv.org/。usb摄像头型号为logitech c170。
+---
+
+* menu
+{:toc}
+
+
+本文实现了一个简单应用，通过V4L2驱动，抓取usb摄像头的YUV图像，运行在Linux Mint 17上， 代码参考自 https://linuxtv.org/。usb摄像头型号为logitech c170，参数如下
+
+|传感器	|CMOS|
+--|--
+像素	|物理像素130W，500万（软件增强）
+捕获幅面	|1024*768
+视像解像度（分辨率）	|1024*768
+最大帧数	|30帧/秒
+接口	|USB 2.0
+麦克风	|内置
+驱动	|免驱
+
+### 一. V4L2简介
+V4L2(video 4 linux 2)
+V4L2有一段历史了。大约在1998的秋天，它的光芒第一次出现在Bill Dirks 的眼中。经过长足的发展，它于2002年11 月，发布2.5.46 时，融入了内核主干之中。然而直到今天，仍有一部分内核驱动不支持新的API，这种新旧API 的转换工作仍在进行。同时，V4L2 API也在发展，并在2.6.18 版本中进行了一些重大的改变。支持V4L2的应用依旧相对较少。V4L2在设计时，是要支持很多广泛的设备的，它们之中只有一部分在本质上是真正的视频设备：
+可以支持多种设备,它可以有以下几种接口:
+1. 视频采集接口(video capture interface):这种应用的设备可以是高频头或者摄像头.V4L2的最初设计就是应用于这种功能的.
+2. 视频输出接口(video output interface):可以驱动计算机的外围视频图像设备--像可以输出电视信号格式的设备.
+3. 直接传输视频接口(video overlay interface):它的主要工作是把从视频采集设备采集过来的信号直接输出到输出设备之上,而不用经过系统的CPU.
+4. 视频间隔消隐信号接口(VBI interface):它可以使应用可以访问传输消隐期的视频信号.
+5. 收音机接口(radio interface):可用来处理从AM或FM高频头设备接收来的音频流.
+
+### 二. 实现过程
+- 准备环境
+把usb摄像头插入笔记本usb口，可以在/dev目录下看到设备名，例如我的是/dev/video0
+- 编译代码
+```sh
+$gcc capture.c -o xcapture
+```
+- 执行
+```sh
+$./xcapture -d /dev/video0
+```
+- 查看yuv文件
+保存下来的文件名字叫test.yuv，用pyuv打开。pyuv下载地址：
+[pyuv下载]
+
+打开后如图所示配置后就能正确看到图像
+![这里写图片描述](http://img.blog.csdn.net/20161027085534013)
+
+![这里写图片描述](http://img.blog.csdn.net/20161027003757036)
+
+### 三. 代码范例
+
+[点击下载capture.c]
+
+以上代码参考自官方的capture.c，可以自行下载，这里面只添加了一个文件句柄 save_fd，用来保存图像数据。
+
+[pyuv下载]: http://dsplab.diei.unipg.it/~baruffa/dvbt/binaries/player/lin32/pyuv_0.5-1_i386.deb
+[点击下载capture.c]: https://github.com/abcamus/abcamus.github.io/tree/master/_samplecode/capture.c

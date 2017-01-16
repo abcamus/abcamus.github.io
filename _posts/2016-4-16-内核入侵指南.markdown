@@ -1,0 +1,404 @@
+---
+layout: post
+title:  "内核入侵指南 "
+date:   2016-04-16 21:22:37 +0800
+categories: 嵌入式开发
+tags: Linux 内核
+excerpt: 翻译 unreliable guide to hacking the linux kernel
+---
+
+* menu
+{:toc}
+
+译者： Albert Camus
+日期：2016年3月29日
+
+# 内核入侵指南 unreliable guide to hacking the linux kernel
+
+## 目录
+1. 引言
+2. 玩家
+3. 一些基本规则
+4. ioctl：不必重写系统调用
+5. 死锁这回事
+6. 常用的例行函数
+7. 等待队列
+8. 原子操作
+9. 符号
+10. 一些惯例和约定
+11. 把你的东西包装进内核
+12. 内核魔术
+13. 致谢
+
+## 第一章 引言
+欢迎各位读者来到Rusty的不可靠linux内核入侵指南。这份文档描述了常见的惯例和内核代码的一般需求：此文档面向有经验的C程序员，可以作为linux内核开发的启蒙读本。这里避免了具体的实现细节：细节在代码中，并且我避免惯例的全部描述。
+
+## 第二章 角色
+在任何时候，CPU总是处于几种状态：
+
+- 不和任何进程关联，服务一个硬件中断；
+- 不和任何进程关联，服务一个软中断，小任务或者下半部中断；
+- 运行在内核空间，和一个进程关联；
+- 在用户空间运行进程。
+
+以上这几种状态有着严格的顺序：除了最后一种机制（用户空间），每一个只能被其之前所述的过程抢断。例如，当CPU正在运行一个软中断时，其他软中断是无法抢断的，但是硬件中断可以。然而，系统内的任何其他CPU都是独立运行的。我们将看到一些方法来让用户上下文阻塞中断，从而使得系统成为真正的非抢占式。
+
+### 用户上下文
+	
+用户上下文是指通过系统调用或者其他陷阱，进而可以：睡眠，占有CPU时间（除了中断）直到调用schedule()函数。换言之，用户上下文（不同于用户空间）不是可抢占的。
+
+>**注意**：当加载或者卸载模块，以及操作块设备层的时候总是处于用户上下文。
+	在用户上下文下，CURRENT指针（指示当前正在执行的任务）是有效的，in_interrupt()函数(include/asm/hardirq.h)返回false。
+	注意
+	要知道如果中断或者下半部被禁用(见下面)，in_interrupt()将返回一个错误的正数。
+
+### 硬件中断（Hard IRQs）
+Timer ticks，网卡以及键盘都是可以在任何时候产生中断的时机硬件例子。内核运行中断处理程序，用来为硬件服务。内核保证这个处理程序不被重复进入：如果另外一个中断来了，它将会被排队（或者丢弃）。因为它禁用了中断，这个处理函数必须快速执行：频繁地获取中断，标记一个软件中断来执行然后退出。
+你可以知道目前正在一个硬件中断中，因为in_irq()返回true。
+	
+>**注意**:
+	要知道如果中断被禁用了，它将返回一个错误的正值（见下文）
+	
+### 软中断上下文：下半部，小任务，软中断
+只要系统调用是关于返回用户空间或者退出硬件中断处理函数，任何被标记为待解决（通常通过硬件中断）的软件中断开始执行（kernel/softirq.c）。
+
+很多实际的中断处理工作在这里完成。在过渡到SMP的早期阶段，只有下半部，无法充分利用多CPU。但是很快我们便摆脱了这种限制。
+
+include/linux/interrupt.h 列举了不同的BH’s。无论有多少CPU，没有BHs会同时运行。这使得转向SMP变得更加容易，但是很难或者性能上的成倍提升。一个很重要的下半部是计时器BH(include/linux/timer.h)：你可以通过注册来让它可以指定时间周期调用函数。
+
+2.3.43 介绍了软中断(softirqs)，并且重新实现（目前以取消）了其中的BHs。软中断是BHs的完全SMP版本：他们可以运行在任意数量的CPU之上。这意味着他们需要通过锁来处理任何由共享数据导致的竞争。一个比特掩码被用来记录那一个软中断被使能了，因此软中断数目不超过32个. (是的，人们会注意的)。
+	
+小任务(include/linux/interrupt.h)和软中断类似，除了它们是动态注册的（意味着可以拥有足够多的小任务），而且它们在任意时刻只会运行在一个CPU之上，尽管不同的小任务能够同时运行（不同的BHs不能同时运行）。
+	
+>注意：
+	”小任务“这个名字具有误导性：它们实际上和“任务”没什么关系。
+	你可以通过in_softirq()（include/asm/softirq.h）宏来确定是否在软中断中（或者下半部， 小任务）。
+	注意：
+	如果一个bh锁被锁定，那么它将返回一个错误的正值。
+
+## 第三章 一些基本规则
+
+1. 没有内存保护
+	如果破坏了内存，不管是在用户上下文或者中断上下文中，机器就回崩溃。你确定你不能在用户空间做你想做的事情吗？
+2. 没有浮点或者MMX
+	浮点处理单元（FPU）上下文不会被保存，即使是在用户上下文中，FPU黄台可能和当前进程不一致：可能会和一些用户进程的FPU状态混淆。如果你真的想要用浮点计算，你必须显示地保存／恢复整个FPU状态（还要避免上下文切换）。这通常是一个不好的办法，还是优先考虑使用定点运算。
+3. 苛刻的栈限制
+	2.2版本内核栈大小大概有6K（针对大多数体系结构；Alpha机器大约有14K），并且和中断共享，所以你根本不能使用。避免在栈上深层次的递归和大的本地向量（使用动态分配）。
+4. Linux内核是可移植的
+	让我们保证，你的代码不是针对64位机器的，并且和大小端无关。同时你应该最小化和CPU相关的代码，e.g。内联汇编需要最小化来简化移植过程。通常这只局限于内核代码树中和体系结构相关的部分。
+	
+## 第四章 ioctls:不写新的系统调用
+一个系统调用通常如下
+```c
+asmlinkage int sys_mycall (int arg)
+{
+	return 0;
+}
+```
+
+首先，在大多数情况下，你并不想要创建一个系统调用。你创建了一个字符设备并且为它实现了合适的ioctl。这比系统调用更加通用，而且不用进入到每一个体系结构的include/asm/unistd.h和arch/kernel/entry.S文件中去，并且更容易被Linus所接受。
+
+在ioctl内，你处于进程的用户上下文中。当发生错误时返回一个负的错误码（参见include/linux/errno.h），否则返回0。
+
+睡眠之后应该检查是否有信号发生：Unix/Linux处理信号的方法是临时退出系统调用并且返回-ERESTARTSYS错误。系统调用代码将会切换回用户上下文，执行信号处理函数，然后你的系统调用将被重新启动（除非被用户禁用了）。因此你不应该自己去处理重启，如果你正在操作某些数据结构。
+    
+```c
+    if (signal_pending())
+	   return -ERESTARTSYS;
+```
+	
+如果正在进行大量计算：首先考虑用户空间。如果你真的想要在内核空间做这些运算，你应该经常检查是否需要放弃CPU（记住每个CPU都有协同的多任务处理）。像这样：
+
+```c
+    if (current->need_resched)
+	   schedule();	/* Will sleep */
+```
+		
+一天关于接口设计的简短说明：UNIX系统调用格言是“提供机制而不是策略”。
+## 第五章 死锁的原因
+你无法调用任何可能睡眠的惯例，除非：
+
+- 你位于用户上下文。
+- 不拥有任何自选锁。
+- 中断已经使能（实际上，Andi Kleen说调度器代码会为你使能中断，但是这可能并不是你想要的）。
+- 注意一些函数可能隐含的睡眠：常见的如用户空间访问函数（*_user）和没有标记GFP_ATOMIC的内存分配函数。
+
+
+如果违反以上规则，系统将会死锁。真的。
+## 第六章 常见的系统惯例
+### printk() include/linux/kernel.h
+printk() 向终端输送内核信息，dmesg，以及系统日志程序的守护进程。这对调试以及错误报告很有用，而且可以用于中断上下文中，但要注意：一台终端爆满了printk信息的机器是没法使用的。该惯例使用格式化字符串，主要和ANSI C printf兼容，而且第一个关于”优先级“的参数术语C字符串系列。
+`printk(KERN_INFO “i = %u\n”, i);`
+参考`include/linux/kernel.h`来了解其他KERN_值；这些值被系统日志当作优先级。特例：打印一个IP地址使用
+
+```c	
+	__u32 ipaddress;
+	printk(KERN_INFO “my ip: %d.%d.%d.%d\n”, NIPQUAD(ipaddress));
+```
+
+printk()在内部使用1K缓存而且不检查越界。请确保缓存是够用的。
+
+>注意：you will know when you are a real kernel hacker when you start typoing printf as printk in your user programs.
+注意：最早的第六版Unix系统在printf函数的最上面有一条注释：“Printf不应该被用来打印便条”
+
+### copy_[to/from]_user()/get_user()/put_user()		include/asm/uaccess.h
+>[睡眠]
+
+`put_user()`和`get_user()`用来从用户空间获取或者向用户空间发送单个值（例如一个int，char，或者long）。指向用户空间的指针不能被直接引用：数据应该通过这些系统惯例来拷贝。这两个惯例返回-EFAULT或者0。
+`copy_to_user()`以及`copy_from_user()`更加通用：它们从用户空间或者向用户空间拷贝任意数量的数据。						
+>注意：
+不像`put_user()`和`get_user()`，它们返回没有完成拷贝的数据量（0依旧代表成功）。
+［是的，这个愚蠢的接口让我感到难堪，请提交一个补丁，成为我心目中的英雄 —RR］
+这些函数会隐式地睡眠。不应该在用户上下文之外调用（这没有任何意义），在中断禁用，或者拥有一个自旋锁的情况下。
+
+### kmalloc()/kfree() 	include/linux/slab.h
+[可能睡眠：见下文]
+
+这些方法用来动态申请地址对齐的内存块，malloc和free工作在用户空间，但是kmalloc() 使用一个额外的标记字。重要的标记值如下：
+
+- GFP_KERNEL
+	
+	可能睡眠或者发生交换来释放内存。虽然只用在用户上下文，但是是最可靠的分配内存的方式。
+- GFP_ATOMIC
+	
+	不会睡眠。不如GFP_KERNEL可靠，但是可以从中断上下文调用。你真的应该有一个良好的内存分配失败的错误处理机制。
+- GFP_DMA
+
+分配低于16MB的ISA DMA。如果你不知道这是什么，那就不需要它。非常不可靠。
+
+如果你看到一个kmem_grow：你在中断上下文中调用了内存分配函数，却没有标记GFP_ATOMIC。你真的应该立即修复。用跑的，别走。
+
+如果你正在分配至少PAGE_SIZE(include/asm/page.h)大小字节的内存，考虑使用_get_free_pages() (include/linux/mm.h)。它有一个阶参数（0表示一个大小，1代表两页，2代表4页等等）以及和上述同样的内存优先级标记字。
+
+如果你正在分配超过一个页大小的内存，你可以使用vmalloc()。它在内核映射中分配虚拟内存。这块内存在物理地址上不连续，但是MMU使得它看上去像是给你的（因此这样分配到的内存从CPU的角度看是连续的，而不是针对外部设备驱动）。如果你真的需要为一些奇怪的设备分配大的连续物理内存，就有一个问题：Linux对这个支持并不好，因为系统运行一些时间之后，内存碎片使得分配大块连续物理内存很难。最好的方法是在启动阶段分配好内存块。
+
+在发明你自己的缓存策略前，考虑使用slab缓存，位于 include/linux/slab.h中
+
+### current		include/asm/current.h
+这个全局变量（实际上是一个宏）包含一个指向当前任务结构的指针，所以只在用户上下文是有效的。比如，当一个进程发生了系统调用，它会指向该进程的任务结构体。在中断上下文中为非空。
+
+### local_irq_save()/local_irq_restore() include/asm/system.h
+这些方法禁用本地CPU中断和恢复中断。它们是不可重入的；之前的状态保存在它们的一个unsigned long型标记参数中。如果你知道中断是被使能的，就可以简单的使用local_irq_disable()和local_irq_enable()。
+
+### local_bh_disable()/local_bh_enable() include/asm/softirq.h
+这些方法禁用本地CPU软中断和恢复中断。不可重入；如果软中断在之前已经被禁用了，调用这些函数之后它们仍然会被禁用。它们阻止软中断，小任务和bottom halves在当前CPU上运行。
+
+### smp_processor_id()/cpu_[number/logical]_map() include/asm/smp.h
+smp_processor_id()返回当前处理器id，值在0和NR_CPUS（Linux支持的最大CPU数量，当前为32）之间。这些值不是一定要连续的；为了得到0和smp_num_cpus()（这台机器实际的处理器数量）之间的一个值，可以用cpu_number_map()函数来把处理器id映射到一个逻辑值。cpu_logical_map()做相反的事情。
+
+### __init/__exit/__initdata include/linux/init.h
+启动之后，内核释放了一个特别的部分；标记了__init的函数和标记了__initdata的数据结构在启动完成之后会被丢弃（在模块内部，这条原语现在被忽略）。
+__exit用来声明一个函数只在退出的时候需要调用：这个函数会被丢弃如果这个文件没有被编译成模块。看具体的头文件来使用。
+
+### __initcall()/module_init()/ include/linux/init.h
+内核中的许多部分都充当模块（动态加载部分）。使用module_init()和module_exit()宏就可以不通过#ifdefs来选择充当模块操作或者编进内核。
+
+module_init()宏定义了哪个函数在模块插入时（u如果文件被编译成了模块）或者启动时被调用；如果文件没有被编译成模块，module_init()宏等价于__initcall()，通过链接器来保证在启动阶段被调用。
+
+这个函数在模块加载失败时返回一个负的错误码（不幸的是，如果编译进了内核，这就没有效果）。对模块来讲，这是在用户上下文调用的，中断使能以及内核锁锁住的情况下，因此它可以睡眠。
+
+### moudle_exit()   include/linux/init.h
+这个宏定义了移除模块的时候调用的函数(或者从来不会调用，如果编译进了内核)。它只有在模块引用计数为0的时候调用。这个函数也能睡眠，但不能失败：所有东西必须在其返回前清理干净。
+
+### MOD_INC_USE_COUNT/MOD_DEC_USE_COUNT  include/linux/module.h
+这几个宏管控这模块使用计数，用来在模块移除时进行保护(当一个模块中导出的符号被另一个模块依赖时，这个模块是不能被卸载的：见下文)。在函数睡眠之前。每一次在用户上下文中对模块的引用应该通过这个计数器反映出来(e.g. 对于每一个数据结构或者套接字)。引用Tim Waugh:
+
+```c    
+    /* THIS IS BAD */
+    foo_open (...)
+    {
+        stuff..
+        if (fail)
+            return -EBUSY;
+        sleep.. (可能在此时卸载)
+        stuff..
+        MOD_INC_USE_COUNT;
+        return 0;
+    }
+    /* THIS IS GOOD */
+    foo_open (...)
+    {
+        MOD_INC_USE_COUNT;
+        stuff..
+        if (faile) {
+            MOD_DEC_USE_COUNT;
+            return -EBUSY;
+        }
+        sleep.. (现在是安全的)
+        stuff..
+        return 0;
+    }
+```
+
+## 第七章 等待队列  include/linux/wait.h
+[睡眠]
+一个等待队列用来等待某些人在特定条件满足时把你唤醒。必须小心地使用来防止竞争条件。你声明一个wait_queue_head_t，然后那些要等待条件满足的进程声明一个wait_queue_t指向自己，接着放到队列里面。
+
+### 声明
+通过使用DECLARE_WAIT_QUEUE_HEAD() 宏来声明，或者在初始化代码里使用init_waitqueue_head()惯例程序。
+
+### 排队
+把自己放到等待队列中是相当复杂的一年事情，因为你必须在把自己放进去之前检查条件。有一个宏用来做这个事情：wait_event_interruptible()
+ include/linux/sched.h 第一个参数是等待队列头，第二个参数是一个待估值的表达式；当一个信号被接收到时，如果表达式为真则返回0，否则返回-ERESTARTSYS。wait_event()版本忽略了信号。
+
+### 唤醒等待中的任务
+调用wake_up() include/linux/sched.h；将会唤醒队列中的每一个进程。有个例外，如果进程标示为TASK_EXCLUSIVE，那么队列中余下的进程将不会被唤醒。
+
+## 第八章 原子操作
+某些操作要保证在所有平台上都是原子性的。第一类这样的操作通过atomic_t include /asm/atomic.h实现；包含了一个有符号的整型(至少32位长)，而且你必须使用这些函数来修改或者读取atomic_t变量。atomic_read()与atomic_set()用来获取和设置计数器, atomic_add(), atomic_sub(), atomic_inc(), atomic_dec(), 以及atomic_dec_and_test() (如果计数到0则返回真)。
+
+是的，它返回真(i.e. !=0)如果原子变量为0。
+
+注意这些函数比一般的算术运算要慢，所以不应该在非必须的情况下使用。在某些平台上面，它们会更加慢，例如32位Sparc平台，它们使用了自旋锁。
+
+第二类原子操作是原子性的位运算，在include/asm/bitops.h中定义。这些操作通常传入一个指针，以及一个比特号：0代表最低比特位。set_bit(), clear_bit()以及change_bit()设置，清除，翻转指定的比特位。
+
+test_and_set_bit(), test_and_clear_bit()以及test_and_change_bit() 做同样的事情，除了返回真如果该位在这之前已经设置了；这对简单的锁来说特别有用。
+
+可能调用这些操作的时候位下标超过31。在大端机上这会导致奇怪的结果，所以最好不要这样做。
+
+## 第九章 符号
+一般的链接规则适用于内核(ie. 除非一个符号通过static关键字声明为文件内访问，否则能从内核中的任何地方访问到)。然而，对于模块而言，保留了一个特殊的导出符号表用来限制内核相关特性的入口(the entry points to the kernel proper)。模块也能导出符号。
+
+### EXPORT_SYMBOL() include /linux/module.h
+这是经典的导出模块的方法，对模块和非模块同时试用。在内核中，所有的声明同样和一个单独的文件绑定用来辅助符号生成器(genksyms脚本，用来为这些声明搜索源文件)。参考genksyms相关注释和下面的Makefile文件。
+
+### EXPORT_SYMTAB
+为了方便起见，一个模块通常导出非文件作用域(non-file-scope)的符号(ie. 所有那些没有声明为static的)。如果在包含头文件include/linux/module.h文件之前定义了这个宏，那么只有显示的通过EXPORT_SYMBOL()才能导出符号。
+
+## 第十章 内核中的常见惯例和规范(Routines and Conventions)
+
+### 双向链表 include/linux/list.h
+在内核头文件中，链表相关的惯例有三个集合，但是这一个似乎胜出了(并且Linus使用过它)。如果你不是特别需要使用单向链表，这会是一个好的选择。事实上，我并不关心这是否是一个好的选择，用它就能摆脱其他一些惯例。
+
+### 返回规范
+对于在用户上下文调用的代码而言，违反C语言规范是常见的事情，返回0表示成功，一个负的错误码(例如 -EFAULT)表示失败。这一开始可能显得不太直观，但是却被广泛使用，譬如在网络相关的代码中。
+
+文件系统代码使用ERR_PTR() include/linux/fs.h;来把一个负数编码成一个指针，以及IS_ERR()和PTR_ERR()来重新获得错误码：避免为错误码使用一个单独的指针参数。感觉不太舒服，但是是个好方法。
+
+### 破碎的编译过程
+Linux和其他开发者有时会在开发板内核中改函数或者结构体的名字；这不是为了让每个人难堪(keep everyone on their toes):它反映了一项基本的改变(例如再也不会在中断打开的情况下被调用或者做额外的检查或者不再针对已经检测过的内容做检查)。通常这在linux内核的邮件列表中能得到完善的注解；搜索邮件列表档案。简单的对文件做全局替换操作通常使得情况更加糟糕。
+
+### 初始化结构体成员
+比较好的初始化结构体的方法是使用gcc的标记元素扩展(Labeled Elements extension)，例如：
+
+```c
+    staic struct block_device_operations opt_fops = {
+        open:                   opt_open,
+        release:                opt_release,
+        ioctl:                  opt_ioctl,
+        check_media_change:     opt_media_change,
+    };
+```
+
+这使得搜索变得容易，而且清除地表明哪些结构体字段被赋值了。你应该这样做因为它看起来很酷。
+
+### GNU 扩展
+GNU扩展在Linux内核中被显式的允许。注意一些更加复杂的扩展由于缺少通用性没有很好的得到支持，但是以下这些被认为是标准的(更多细节参见GCC info页"C Extension"节)--是的，就是info页，man页只是info页的一个简短的概述。
+
+- 内联函数
+- 表达式扩展(例如({与})结构)
+- 声明函数/变量/类型的属性(__attribute__)
+- 标签元素
+- typeof
+- 0长度向量
+- 宏的可变参数
+- 空指针运算
+- 非常量初始化
+- 汇编指令(在arch/和 include/asm内)
+- 函数名作为字符串(\__FUNCTION__)
+- __builtin_constant_p()
+
+在使用long long类型时保持警惕，gcc为它生成的代码非常糟糕：除法和乘法在i386平台上不能工作，因为与此相关的GCC运行时函数在内核中是没有的。
+
+### C++
+在内核中使用C++通常是一个坏主意，因为内核并不提供必要的运行环境而且头文件也没有针对C++进行过测试。但是这仍然是可能的，但是不建议。如果你真的想要这么做，至少忽略异常。
+
+### #if
+通常认为相对于在源代码中使用'#if'预处理语句而言，在头文件(或者.c文件的顶部)使用宏来剔除函数被认为是比较干净的。
+
+## 第十一章 把你的玩意儿放到内核里
+为了把你自己的玩意儿整合进官方版本中，或者做一个干净的补丁，有一些管理工作需要做：
+
+- 发现你在哪个池塘中撒尿。看源文件的顶部，MAINTAINERS文件，以及CREDITS文件。你要和这个人合作来确认你的工作不是重复的，或者尝试一些已经被拒绝的东西。
+确保你把你的名字和邮箱地址放到了你创建的每个文件的顶部。这是人们发现bug的时候会首先看的地方，或者当他们想要做一些改变时。
+- 通常你想要针对你的内核有一个配置文件。在适当的目录下编辑Config.in文件(在arch/目录下，它叫config.in)。使用的配置语言不是bash，尽管它看上去像bash；安全的方法是只使用在Config.in文件中见到的构造(参见Documentation/kbuild/config-language.txt)。最好运行"make xconfig"来做下测试(因为这是和静态检测器(staic parser)相关的唯一命令)。
+值为Y或者N的变量使用跟着结尾符和配置定义名字(必须以CONFIG_开头)的布尔型。三态函数也是一样的，但是允许回答是M(在源码中定义CONFIG_foo_MODULE，而不是CONFIG_FOO)如果CONFIG_MODULES被使能了。
+你可能想要只在CONFIG_EXPERIMENTAL使能的情况下配置你的CONFIG选项：这相当于对用户的警告。还有其他一些繁杂的事情要做做：去看不同的Config.in文件。
+- 编辑Makefile：CONFIG变量在这里是被导出的，所以你可以通过'ifeq'来条件编译。如果你的文件导出了符号，那么把名字加到MX_OBJS或者OX_OBJS而不是M_OBJS或者O_OBJS，使得genksyms能够找到它们。
+- 在Documentation/Configure.help文件中为你的配置写好文档。在这里提示不兼容的地方和问题。明确的在你的描述结尾写上"if in doubt, say N"(or,occasionally,'Y');这是给那些不知道你在讲什么的人看的。
+- 把你自己放到CREDITS中，通常不止一个文件(不管怎样你的名字应该在源文件的顶部)，如果你做了一些值得纪念的事情。MAINTAINERS意味着在某个子系统改变时，需要咨询你，你也要监听bugs；这意味着不仅仅是提交代码了。
+
+## 第十二章 内核魔咒
+通过浏览源码收藏的一些东西，可以自由的放到这个列表中。
+include/linux/brblock.h
+
+```c
+    extern inline void br_read_lock (enum brblock_indices idx)
+    {
+        /*
+        * This causes a link-time bug message if an
+        * invalid index is used:
+        */
+        if (idx >= __BR_END)
+            __br_lock_usage_bug();
+        read_lock(&__brlock_array[smp_processor_id()][idx]);
+    }
+```
+
+
+>include/linux/fs.h:
+
+```c
+    /*
+     * Kernel pointers have redundant information, so we can use a
+     * scheme where we can return either an error code or a dentry
+     * pointer with the same return value.
+     * 
+     * This should be a per-architecture thing, to allow different
+     * error and pointer decisions.
+     */
+    #define ERR_PTR(err) ((void *)((long)(err)))
+    #define PTR_ERR(ptr) ((long)(ptr))
+    #define IS_ERR(ptr) ((unsigned long)(ptr) > \
+    (unsigned long)(-1000))
+```
+    
+>include/asm-i386/uaccess.h:
+
+```c    
+    #define copy_to_user(to,from,n) \
+        (__builtin_constant_p(n) ? \
+        __constant_copy_to_user((to),(from),(n)) : \
+        __generic_copy_to_user((to),(from),(n)))
+```
+    
+>arch/sparc/kernel/head.S:
+
+```c
+    /*
+     * Sun people can’t spell worth damn. "compatability" indeed.
+     * At least we *know* we can’t spell, and use a spell-checker.
+     */
+    /* Uh, actually Linus it is I who cannot spell. Too much murky
+     * Sparc assembly will do this to ya.
+     */
+    C_LABEL(cputypvar):
+        .asciz "compatability"
+    /* Tested on SS-5, SS-10. Probably someone at Sun applied a spell-checker. */
+        .align 4
+    C_LABEL(cputypvar_sun4m):
+        .asciz "compatible"
+```
+
+>arch/sparc/lib/checksum.S:
+
+```s\c
+    /* Sun, you just can’t beat me, you just can’t. Stop trying,
+     * give up. I’m serious, I am going to kick the living shit
+     * out of you, game over, lights out.
+     */
+```
+
+## 第十三章 鸣谢
+感谢Andi Kleen提出这个想法，回答我的疑问，修正我的错误，填充内容等等。Philipp Rumpf帮忙纠正了拼写和语法错误，以及一些不太明显的地方。Werner Almesberger帮我总结了disable_irq()，以及Jes Sorensen和Andrea Arcangeli加了警告。Michael Elizabeth Chastain检查添加了配置这一节。Telsa Gwynne教我使用DocBook。

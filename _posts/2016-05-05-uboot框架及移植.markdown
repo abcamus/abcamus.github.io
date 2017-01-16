@@ -1,0 +1,193 @@
+---
+layout: post
+title:  "uboot 框架及移植 "
+date:   2016-05-05 21:22:37 +0800
+categories: 嵌入式开发
+tags: uboot 移植
+excerpt: 本文以最新版uboot(2016.05)为例介绍bootloader框架，uboot代码越来越庞大，除了boot系统之外，充当测试平台都没问题，支持的硬件也很丰富，spiflash, mmc, usb, network, serial, sound.etc， 简直就是小型的操作系统。
+---
+
+* menu
+{:toc}
+
+---
+
+## 1. 引言
+本文以最新版uboot(2016.05)为例介绍bootloader框架，uboot代码越来越庞大，除了boot系统之外，充当测试平台都没问题，支持的硬件也很丰富，spiflash, mmc, usb, network, serial, sound.etc， 简直就是小型的操作系统。
+
+平台相关名字设置
+
+SoC     | Vendor    | Board     | Config Name
+:--|:--|:--|:--
+apoll   |sourceriver| thunder1d1|thunder1d1
+
+## 2. 移植和编译
+现在uboot和linux kernel一样都可以通过make menuconfig来进行配置，具体什么原理就不关心了（还没仔细研究过，^_^），只要能在这个机制下面配置好针对我们自己平台的代码就可以了。
+
+### 2.1 配置平台，生成镜像
+一些常见的平台，uboot已经提供了默认配置，通常我们只要修改这些默认配置来适配我们的平台就可以了。那么我们都要改动哪些地方才能让编译器生成真正属于我们的bootloader代码呢？
+默认配置文件位于`configs/`文件夹下，所以默认配置文件名字都以defconfig后缀结尾，比如
+`same5d2_xplained_spiflash_defconfig`
+
+通过对这个默认配置的解读，我们就可以了解新的结构要怎么添加了。我们的学习策略是：先看默认配置，然后搜索代码，看这些配置选项对应哪部分代码，然后在那些代码的位置加入我们自己的代码就可以了。
+假设现在有一个平台，叫做**apoll**，现在就针对apoll平台来做移植，先看`same5d2_xplained_spiflash_defconfig`的默认配置。
+```sh
+CONFIG_ARM=y
+CONFIG_ARCH_AT91=y
+CONFIG_TARGET_SAMA5D2_XPLAINED=y
+CONFIG_SPL=y
+CONFIG_SYS_EXTRA_OPTIONS="SAMA5D2,SYS_USE_SERIALFLASH"
+# CONFIG_CMD_IMI is not set
+# CONFIG_CMD_IMLS is not set
+# CONFIG_CMD_LOADS is not set
+# CONFIG_CMD_FLASH is not set
+CONFIG_CMD_SF=y
+# CONFIG_CMD_FPGA is not set
+CONFIG_SPI_FLASH=y
+```
+
+|名字(行号)       |解释           |位置|
+--|--|:--:
+1           |CPU架构        |arch/arm
+2           |machine架构    |arch/arm/mach-at91
+3           |板级配置       |board/atmel/same5d2_xplained
+4           |SPL支持<a href="#spl"> What's SPL</a>        |平台相关代码，见上
+5           |deprecated     |Kconfig
+10          |spi flash cmd  |cmd/
+12          |spi flash driver|drivers/mtd/spi/ [What's mtd?][1]
+
+最终生成的.config文件有以下几个平台相关的参数
+```sh
+CONFIG_SYS_ARCH="arm"
+CONFIG_SYS_CPU="armv7"
+CONFIG_SYS_SOC="at91"
+CONFIG_SYS_VENDOR="atmel"
+CONFIG_SYS_BOARD="sama5d2_xplained"
+CONFIG_SYS_CONFIG_NAME="sama5d2_xplained"
+```
+
+### 2.2 添加框架代码
+从上面的分析中我们知道了平台相关的代码都位于什么位置，接下来就开始移植工作了：
+ 
+ - 确定CPU体系结构，**apoll**是基于ARM core的，因此第一个选项不用变。
+ - 添加machine代码
+```sh
+$cp -r arch/arm/mach-at91 arch/arm/mach-apoll
+```
+arch/arm/Kconfig添加
+```sh
+config ARCH_APOLL
+	bool "Apoll From Olympus"
+	...
+source "arch/arm/mach-apoll/Kconfig"
+...
+```
+arch/arm/Makefile如下
+```sh
+...
+machine-$(CONFIG_ARCH_AT91)			+= at91
+machine-$(CONFIG_ARCH_APOLL)		+= apoll
+machine-$(CONFIG_ARCH_BCM283X)		+= bcm283x
+...
+```
+
+ - 板级支持
+修改arch/arm/mach-apoll/Kconfig，最终代码如下，假设板子名字叫THUNDER1D1
+
+```sh
+if ARCH_APOLL
+
+choice
+	prompt "Apoll board select"
+	optional
+
+config TARGET_THUNDER1D1
+	bool "THUNDER1D1 board"
+	select CPU_V7
+
+endchoice
+
+config SYS_SOC
+	default "apoll"
+
+endif
+```
+
+修改arch/arm/mach-apoll/Makefile，这里可以暂时不改，代码如下
+
+```sh
+#
+# SPDX-License-Identifier:	GPL-2.0+
+#
+
+obj-$(CONFIG_AT91_WANTS_COMMON_PHY) += phy.o
+ifneq ($(CONFIG_SPL_BUILD),)
+obj-$(CONFIG_AT91SAM9260) += sdram.o spl_at91.o
+obj-$(CONFIG_AT91SAM9G20) += sdram.o spl_at91.o
+obj-$(CONFIG_AT91SAM9M10G45) += mpddrc.o spl_at91.o
+obj-$(CONFIG_AT91SAM9N12) += mpddrc.o spl_at91.o
+obj-$(CONFIG_AT91SAM9X5) += mpddrc.o spl_at91.o
+obj-$(CONFIG_SAMA5D2) += mpddrc.o spl_atmel.o matrix.o atmel_sfr.o
+obj-$(CONFIG_SAMA5D3) += mpddrc.o spl_atmel.o
+obj-$(CONFIG_SAMA5D4) += mpddrc.o spl_atmel.o matrix.o atmel_sfr.o
+obj-y += spl.o
+endif
+
+obj-y += clock.o
+obj-$(CONFIG_CPU_ARM920T)	+= arm920t/
+obj-$(CONFIG_CPU_ARM926EJS)	+= arm926ejs/
+obj-$(CONFIG_CPU_V7)		+= armv7/
+```
+
+ - 驱动支持
+目前只支持串口驱动，具体配置参见代码，[点击这里](https://github.com/abcamus/uboot-porting)下载源代码。
+
+## 2. 结果与分析
+目前驱动只支持了串口，在ARM Cortex-A5平台下运行，输出如下，看上去一切正常。
+![串口输出](http://img.blog.csdn.net/20160506124643618)
+
+整个移植过程其实没有多少工作量，花了大半天时间完成编译，然后一次上机就成功了。主要还是由于把大多数功能都屏蔽了，比如没有支持SPL，驱动只支持了串口。
+
+### 2.1 后续工作
+
+1. 添加timer驱动，在board/thunder1d1/timer.c中实现timer_init()，get_timer()等接口。
+2. 添加网络驱动，比如designware的greth，然后就可以tftpboot启动linux kernel了。
+3. 根据需求添加其他外设驱动，例如spi flash，usb，display等等。
+
+### 2.2 分析总结
+新版的uboot支持Kbuild机制进行配置，方便了移植工作，但是目前也只是一部分配置可以通过这种方式配置，驱动细节（例如flash）还是要通过在相关头文件(include/configs/thunder1d1.h)中通过宏定义进行控制。
+
+## 3. 附：启动流程
+程序入口为_start，位于
+
+```sh
+arch/arm/lib/vector.S
+```
+
+主要接口调用过程如下：
+
+>注：还不清楚jekyll怎么支持流程图
+
+```c
+start=>start: _start
+reset=>start: b reset
+cp15=>start: cpu_init_cp15
+crit=>start: cpu_init_crit
+end=>end: _main
+
+start->reset->cp15->crit->end
+```
+
+Table 3-1: 接口说明
+
+_reset | _cpu_init_cp15 | cpu_init_crit | _main
+--|
+cpu的reset异常处理函数，也是uboot的默认入口 | cp15协处理器设置，配置cache，MMU，TLB | 配置critical registers，板级pll, mux, memory配置 | 
+
+### 3.1 资料
+[spl介绍]\: 关于spl的介绍参见doc/REDME.SPL
+
+[代码仓库]\: https://github.com/abcamus/uboot-porting 
+
+[spl介绍]: http://www.cnblogs.com/lcw/p/3313698.html
+[代码仓库]: http://pan.baidu.com/disk/home?adapt=pc&fr=ftw#list/path=/

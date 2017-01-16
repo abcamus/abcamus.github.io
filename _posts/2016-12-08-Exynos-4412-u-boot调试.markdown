@@ -1,0 +1,328 @@
+---
+layout: post
+title:  "Exynos 4412 u-boot 调试 "
+date:   2016-12-08 21:22:37 +0800
+categories: 嵌入式开发
+tags: uboot exynos4412 调试
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+最近给Exynos 4412开发板移植了uboot，具体过程就不表了，可以参考： http://blog.csdn.net/abcamus/article/details/51326881
+
+代码都已经上传到github： https://github.com/abcamus/bootloader-for-Exynos-4412.git
+
+几个注意点：
+
+### 1. arch/arm/include/asm/arch-exynos/power.h中的结构体定义
+和手册上的有点出入，属于版本兼容问题，根据手册改改，我是一个个对的，花了几个小时时间，还担心哪里出错，汗！。示例如下：
+
+```c
+struct exynos4x12_power {
+	unsigned int	om_stat;
+	unsigned char	res1[0xc];
+	unsigned int	rtc_clko_sel;				// 0x10
+	unsigned int	gnss_rtc_out_ctrl;			// 0x14
+	unsigned char	res2[0x1e8];				// 0x18
+	unsigned int	central_seq_config;			// 0x200
+	unsigned int	res3;
+	unsigned int	central_seq_option;			// 0x208
+	unsigned char	res4[0x1f4];				// 0x20c
+	...
+};
+```
+
+### 2. 时钟的寄存器映射
+和power.h同目录下的clock.h
+```c
+struct exynos4x12_clock {
+	unsigned char	res1[0x4200];
+	unsigned int	src_leftbus;	// 0x4200
+	unsigned char	res2[0x1fc];	// 0x4204
+	unsigned int	mux_stat_leftbus;	// 0x4400
+	unsigned char	res3[0xfc];		// 0x4404
+	unsigned int	div_leftbus;	// 0x4500
+	unsigned char	res4[0xfc];
+	unsigned int	div_stat_leftbus;	// 0x4600
+	unsigned char	res5[0x1fc];
+	...
+};
+```
+
+### 3. 几个宏
+arch/arm/include/asm/arch-exynos/cpu.h
+
+因为tag追踪不到这些地方，所以记录在这里，方便查询。
+
+```c
+#define SAMSUNG_BASE(device, base)				\
+static inline unsigned int __attribute__((no_instrument_function)) \
+	samsung_get_base_##device(void) \
+{								\
+	if (cpu_is_exynos4()) {				\
+		if (proid_is_exynos4412())			\
+			return EXYNOS4X12_##base;		\
+		return EXYNOS4_##base;				\
+	} else if (cpu_is_exynos5()) {				\
+		if (proid_is_exynos5420() || proid_is_exynos5800())	\
+			return EXYNOS5420_##base;		\
+		return EXYNOS5_##base;				\
+	}							\
+	return 0;						\
+}
+
+SAMSUNG_BASE(adc, ADC_BASE)
+SAMSUNG_BASE(clock, CLOCK_BASE)
+SAMSUNG_BASE(ace_sfr, ACE_SFR_BASE)
+SAMSUNG_BASE(dp, DP_BASE)
+SAMSUNG_BASE(sysreg, SYSREG_BASE)
+SAMSUNG_BASE(fimd, FIMD_BASE)
+SAMSUNG_BASE(i2c, I2C_BASE)
+SAMSUNG_BASE(i2s, I2S_BASE)
+SAMSUNG_BASE(mipi_dsim, MIPI_DSIM_BASE)
+SAMSUNG_BASE(gpio_part1, GPIO_PART1_BASE)
+SAMSUNG_BASE(gpio_part2, GPIO_PART2_BASE)
+SAMSUNG_BASE(gpio_part3, GPIO_PART3_BASE)
+SAMSUNG_BASE(gpio_part4, GPIO_PART4_BASE)
+SAMSUNG_BASE(pro_id, PRO_ID)
+SAMSUNG_BASE(mmc, MMC_BASE)
+SAMSUNG_BASE(modem, MODEM_BASE)
+SAMSUNG_BASE(sromc, SROMC_BASE)
+SAMSUNG_BASE(swreset, SWRESET)
+SAMSUNG_BASE(timer, PWMTIMER_BASE)
+SAMSUNG_BASE(uart, UART_BASE)
+SAMSUNG_BASE(usb_phy, USBPHY_BASE)
+SAMSUNG_BASE(usb3_phy, USB3PHY_BASE)
+SAMSUNG_BASE(usb_ehci, USB_HOST_EHCI_BASE)
+SAMSUNG_BASE(usb_xhci, USB_HOST_XHCI_BASE)
+SAMSUNG_BASE(usb_otg, USBOTG_BASE)
+SAMSUNG_BASE(watchdog, WATCHDOG_BASE)
+SAMSUNG_BASE(power, POWER_BASE)
+SAMSUNG_BASE(spi, SPI_BASE)
+SAMSUNG_BASE(spi_isp, SPI_ISP_BASE)
+SAMSUNG_BASE(tzpc, TZPC_BASE)
+SAMSUNG_BASE(dmc_ctrl, DMC_CTRL_BASE)
+SAMSUNG_BASE(dmc_phy, DMC_PHY_BASE)
+SAMSUNG_BASE(dmc_tzasc, DMC_TZASC_BASE)
+SAMSUNG_BASE(audio_ass, AUDIOSS_BASE)
+```
+
+### 4. board_init_f
+arch/arm/cpu/armv7/exynos/spl_boot.c
+
+在`do_lowlevel_init`中，`arch_cpu_init`会读取cpu id保存到全局变量中，`samsung_get_base_*`系列宏会从保存的全局变量判断是那个cpu型号，从而确定模块基地址，如果`arch_cpu_init`出错，在原来的架构下肯定是不能正常工作的。
+
+其实非常简单，就是初始化cpu和clock，然后拷贝uboot镜像到dram中，接着运行dram中的uboot，主要就是在调试这一段代码。
+```c
+void board_init_f(unsigned long bootflag)
+{
+	__aligned(8) gd_t local_gd;
+	__attribute__((noreturn)) void (*uboot)(void);
+
+	setup_global_data(&local_gd);
+
+	if (do_lowlevel_init())
+		power_exit_wakeup();
+
+	copy_uboot_to_ram();
+
+	/* Jump to U-Boot image */
+	uboot = (void *)CONFIG_SYS_TEXT_BASE;
+	(*uboot)();
+	/* Never returns Here */
+}
+```
+
+### 5. 点灯调试
+最好在函数led_on入口把r0,r1压栈，返回前出栈，否则其他代码运行可能会受影响。
+```c
+led_on:
+	ldr r0, =0x11000100
+	mov r1, #1
+	str r1, [r0]
+	ldr r0, =0x11000060
+	mov r1, #0
+	str r1, [r0]
+	ldr r0, =0x11000104
+	mov r1, #1
+	str r1, [r0]
+	ldr r0, =0x11000064
+	mov r0, #0
+	str r0, [r0]	
+	bx lr
+```
+
+在需要调试的地方，插入led_on()或者bl led_on。譬如要判断变量a是否等于2,可以这么写
+
+```c
+if (a == 2)
+	led_on();
+```
+
+### 6. 几个镜像说明
+在`$(srctree)/spl/`下，`$(board)-spl.bin`其实是芯片手册中的BL1，按照芯片手册的说法，iROM负责读入BL1到SRAM，然后BL1初始化系统时钟和DRAM控制器，然后就可以加载操作系统了。没错，我们编译出来的这个镜像实实在在地做了这些事情。
+但是另一份文档（Android_Exynos4412_iROM_Secure_Booting_Guide_Ver.1.00.00，标题赫然写着4212,所以个人觉得参考价值不大，直接参考芯片手册）的说法，iROM先加载BL1,然后BL1加载BL2,BL2加载OS或者FW。此时BL1和BL2都会做初始化时钟的工作，BL2其实是多余的，直接从BL1加载。这让我困惑了一段时间，而且网络上有提供三星的BL1（大小为8KB）的，估计这个BL1是先加载BL2到SRAM，而不是直接加载OS，故而有此变化。**芯片手册是如下这么说的：**
+
+-  iROM is placed in internal 64 KB ROM. It initializes basic system functions such as clock and stack. 
+- iROM loads BL1 image from a specific booting device to internal 256 KB SRAM. The booting device is 
+selected by Operating Mode (OM) pins. According to the secure boot key values, iROM may do an integrity 
+check on BL1 image. 
+- BL1 initializes system clock, and DRAM controller. After initializing DRAM controller, it loads OS image from 
+the booting device to DRAM. According to the secure boot key values, BL1 can do an integrity check on the 
+OS image. 
+- After the booting completes, BL1 jumps to the operating system. 
+
+总结下来就是两种方法（现在采用的是第一种方法）：
+1. 利用官方提供的BL1,然后uboot编译的时候生成的镜像中产生BL2（负责配置时钟/dmc等，拷贝OS）。这个时候BL2可以通过`spl/u-boot-spl.bin`生成。
+2. 直接生成BL1,就是说把`spl/landrover-spl.bin`改巴改巴，符合iROM的要求，然后执行这个BL1的时候就完成了相当于第一种方法BL2的功能。
+ 
+### 7. spl内存映射
+在编译出来的u-boot-spl镜像中，原来指定的代码段地址为 $0x02021410$，从这里也可以看到编译出来的u-boot-spl.bin其实是BL1，但是和4412是不兼容的，改为$0x02023400$。 BL2的栈顶地址为 $0x02040000$, 相应的iROM Function地址不需要改。
+
+```c
+/* IROM Function Pointers Table */
+u32 irom_ptr_table[] = {
+	[MMC_INDEX] = 0x02020030,	/* iROM Function Pointer-SDMMC boot */
+	[EMMC44_INDEX] = 0x02020044,	/* iROM Function Pointer-EMMC4.4 boot*/
+	[EMMC44_END_INDEX] = 0x02020048,/* iROM Function Pointer-EMMC4.4 end boot operation */
+	[SPI_INDEX] = 0x02020058,	/* iROM Function Pointer-SPI boot */
+	[USB_INDEX] = 0x02020070,	/* iROM Function Pointer-USB boot*/
+};
+```
+
+### 8. 编译选项
+把Makefile中的KBUILD_CFLAGS += -O2改为
+
+```c
+KBUILD_CFLAGS += -O0
+```
+
+关闭调试信息，方便反汇编的时候看代码
+
+```c
+#注释掉
+KBUILD_CFLAGS	+= -g
+KBUILD_AFLAGS	+= -g
+```
+
+### 9 反汇编
+
+```c
+$ arm-none-linux-gnueabi-objdump -D u-boot-spl > outfile
+```
+`-D`出来de反汇编文件包含所有的sections
+
+### 10. 使用
+
+参考命令
+```c
+$ make landrover_defconfig
+$ ./build.sh
+$ sudo ./mkuboot /dev/sdc
+```
+
+### 11. 输出界面(补充)
+```shell
+OK
+
+U-Boot 2015.04-gdcc0814-dirty (Dec 20 2016 - 15:24:03) for LANDROVER
+
+CPU:    Exynos4412@1000MHz
+Model: landrover based on Exynos4412
+DRAM:  1 GiB
+WARNING: Caches not enabled
+Pre-reloc malloc() used 0xdc bytes (0 KB)
+Now running in RAM - U-Boot at: 7fe6e000
+MMC:   EXYNOS DWMMC: 0
+dwmci_send_cmd: DATA ERROR!
+*** Warning - bad CRC, using default environment
+
+Hit any key to stop autoboot:  0 
+dwmci_send_cmd: DATA ERROR!
+SD/MMC found on device 0
+** File not found uEnv.txt **
+** File not found boot.scr **
+** File not found uImage **
+Wrong Image Format for bootm command
+ERROR: can't get kernel image!
+LANDROVER # 
+LANDROVER # 
+LANDROVER # ?
+?       - alias for 'help'
+base    - print or set address offset
+bdinfo  - print Board Info structure
+boot    - boot default, i.e., run 'bootcmd'
+bootd   - boot default, i.e., run 'bootcmd'
+bootelf - Boot from an ELF image in memory
+bootm   - boot application image from memory
+bootvx  - Boot vxWorks from an ELF image
+bootz   - boot Linux zImage image from memory
+cmp     - memory compare
+coninfo - print console devices and information
+cp      - memory copy
+crc32   - checksum calculation
+dcache  - enable or disable data cache
+dfu     - Device Firmware Upgrade
+dm      - Driver model low level access
+echo    - echo args to console
+editenv - edit environment variable
+env     - environment handling commands
+erase   - erase FLASH memory
+exit    - exit script
+ext2load- load binary file from a Ext2 filesystem
+ext2ls  - list files in a directory (default /)
+ext4load- load binary file from a Ext4 filesystem
+ext4ls  - list files in a directory (default /)
+ext4size- determine a file's size
+ext4write- create a file in the root directory
+false   - do nothing, unsuccessfully
+fatinfo - print information about filesystem
+fatload - load binary file from a dos filesystem
+fatls   - list files in a directory (default /)
+fatsize - determine a file's size
+fatwrite- write file into a dos filesystem
+fdt     - flattened device tree utility commands
+flinfo  - print FLASH memory information
+fstype  - Look up a filesystem type
+go      - start application at address 'addr'
+gpt     - GUID Partition Table
+help    - print command description/usage
+icache  - enable or disable instruction cache
+iminfo  - print header information for application image
+itest   - return true/false on integer compare
+load    - load binary file from a filesystem
+loadb   - load binary file over serial line (kermit mode)
+loads   - load S-Record file over serial line
+loadx   - load binary file over serial line (xmodem mode)
+loady   - load binary file over serial line (ymodem mode)
+loop    - infinite loop on address range
+ls      - list files in a directory (default /)
+md      - memory display
+mii     - MII utility commands
+mm      - memory modify (auto-incrementing address)
+mmc     - MMC sub system
+mmcinfo - display MMC info
+mw      - memory write (fill)
+nm      - memory modify (constant address)
+part    - disk partition related commands
+printenv- print environment variables
+protect - enable or disable FLASH write protection
+reset   - Perform RESET of the CPU
+run     - run commands in an environment variable
+save    - save file to a filesystem
+saveenv - save environment variables to persistent storage
+setenv  - set environment variables
+setexpr - set environment variable as the result of eval expression
+showvar - print local hushshell variables
+size    - determine a file's size
+source  - run script from memory
+sysboot - command to get and boot from syslinux files
+test    - minimal test like /bin/sh
+thordown- TIZEN "THOR" downloader
+true    - do nothing, successfully
+ums     - Use the UMS [User Mass Storage]
+version - print monitor, compiler and linker version
+LANDROVER # 
+```

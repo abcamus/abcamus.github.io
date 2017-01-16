@@ -1,0 +1,96 @@
+---
+layout: post
+title:  "USB系统：hub线程 "
+date:   2016-09-26 21:22:37 +0800
+categories: 嵌入式开发
+tags: USB Linux
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+### 1. hub表征
+usb子系统中所有和hub相关的都交由一个内核线程表征， 通过
+`static struct workqueue_struct *hub_wq`
+来管理。
+
+- 创建/删除
+
+```c
+hub_wq = alloc_workqueue("usb_hub_wq", WQ_FREEZABLE, 0);
+destroy_workqueue(hub_wq);
+queue_work(hub_wq, &hub->events);
+
+INIT_WORK(&hub->events, hub_event);
+```
+
+- 访问
+所有和hub_wq相关的访问都通过kick_hub_wq进入。
+
+```c
+static void kick_hub_wq(struct usb_hub *hub)
+{
+	struct usb_interface *intf;
+
+	if (hub->disconnected || work_pending(&hub->events))
+		return;
+
+	/*
+	 * Suppress autosuspend until the event is proceed.
+	 *
+	 * Be careful and make sure that the symmetric operation is
+	 * always called. We are here only when there is no pending
+	 * work for this hub. Therefore put the interface either when
+	 * the new work is called or when it is canceled.
+	 */
+	intf = to_usb_interface(hub->intfdev);
+	usb_autopm_get_interface_no_resume(intf);
+	kref_get(&hub->kref);
+
+	if (queue_work(hub_wq, &hub->events))
+		return;
+
+	/* the work has already been scheduled */
+	usb_autopm_put_interface_async(intf);
+	kref_put(&hub->kref, hub_release);
+}
+```
+
+首先，检查hub是否处于连接状态或者正在等待事件，如果是，则返回。否则将work_struct加入工作队列等待调度。
+
+### 2 hub事件
+这些接口中会触发hub events。
+
+- hub_irq: 枚举hub时的回调函数，中断触发
+- hub_port_logical_disconnect: 断开usb设备连接
+- hub_activate: 激活hub, 包括复位，初始化，挂起后恢复
+
+重点关注一下hub_activate
+
+```c
+enum hub_activation_type {
+	HUB_INIT, HUB_INIT2, HUB_INIT3,		/* INITs must come first */
+	HUB_POST_RESET, HUB_RESUME, HUB_RESET_RESUME,
+};
+
+static void hub_activate(struct usb_hub *hub, enum hub_activation_type type);
+```
+
+hub_activate根据hub port状态来设置各个event，其实就是设置struct usb_hub结构体中的event_bits, change_bits和wakeup_bits各个比特位。
+参考USB 2.0 spec chapter 11
+
+### 3 事件处理
+在hub probe阶段初始化了hub event的处理函数
+
+```c
+INIT_WORK(&hub->events, hub_event);
+```
+
+hub_event函数会根据event_bits，change_bits以及wakeup_bits来做事件响应，最终通过port_event处理各个port上的事件。
+
+```c
+static void port_event(struct usb_hub *hub, int port1) __must_hold(&port_dev->status_lock)
+```
+
+参考文献： http://www.ibm.com/developerworks/cn/linux/l-tasklets/

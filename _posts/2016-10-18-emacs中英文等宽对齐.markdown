@@ -1,0 +1,49 @@
+---
+layout: post
+title:  "emacs中英文等宽对齐 "
+date:   2016-10-18 21:22:37 +0800
+categories: 工具
+tags: emacs
+excerpt: 让emacs中的中文和英文等宽
+---
+
+* menu
+{:toc}
+
+在家里的笔记本上新装了一个Linux Mint系统，emacs英文字体配了Monaco，中文字体用WenQuanYi Micro Hei。
+结果用emacs写文档的时候发现中文的字体宽度不是英文字体宽度的两倍，看着好别扭，以前在Mac OS上也遇到过这个问题，很久没接触了，又去网上搜了一下，这次把方法记录在这里。
+
+### 配置
+
+```ruby
+;;----------------------------------------------------------------------------
+;; theme
+;;----------------------------------------------------------------------------
+;;(set-default-font "Monaco-11")
+;;中文与外文字体设置
+;; Setting English Font
+;;(set-face-attribute
+;;  'default nil :font "Monaco 11")
+;; Chinese Font
+;;(dolist (charset '(kana han symbol cjk-misc bopomofo))
+;;(set-fontset-font (frame-parameter nil 'font)
+;;				  charset
+;;				  (font-spec :family "WenQuanYi Zen Hei" ,size 14))
+;;(setq face-font-rescale-alist '(("Microsoft Yahei" . 1.2) ("WenQuanYi Zen Hei" . 1.2))))
+
+(when (display-graphic-p)
+  (setq fonts
+		(cond ((eq system-type 'darwin)		'("Monaco"		"STFangsong"))
+			  ((eq system-type 'gnu/linux)	'("Monaco"		"WenQuanYi Micro Hei Mono"))
+			  ((eq system-type 'windows-nt)	'("Consolas"	"Microsoft Yahei"))))
+  (setq face-font-rescale-alist '(("STHeiti" . 1.2) ("STFangsong" . 1.2) ("Microsoft Yahei" . 1.2) ("WenQuanYi Micro Hei Mono" . 1.2)))
+  (set-face-attribute 'default nil :font
+					  (format "%s:pixelsize=%d" (car fonts) 14))
+  (dolist (charset '(kana han symbol cjk-misc bopomofo))
+	(set-fontset-font (frame-parameter nil 'font) charset
+					  (font-spec :family (car (cdr fonts)) :size 16))))
+```
+
+这里手动改了最后一行的size，然后重启emacs看看效果，感觉还行
+
+![这里写图片描述](http://img.blog.csdn.net/20161018135455385)

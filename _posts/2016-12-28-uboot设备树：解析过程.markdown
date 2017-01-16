@@ -2,8 +2,8 @@
 layout: post
 title:  "uboot设备树：解析过程分析"
 date:   2016-12-28 15:32:37 +0800
-categories: uboot
-tags: uboot
+categories: 嵌入式开发
+tags: uboot 设备树 dts
 excerpt: 以设备树在内存中的分布结构为突破口，介绍解码过程。
 ---
 

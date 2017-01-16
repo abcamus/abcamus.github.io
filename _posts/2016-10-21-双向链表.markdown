@@ -1,0 +1,104 @@
+---
+layout: post
+title:  "双向链表 "
+date:   2016-10-21 21:22:37 +0800
+categories: 嵌入式开发
+tags: Linux 数据结构
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+## 本文介绍c语言双向链表
+
+### 一. 数据结构
+
+```cpp
+struct list_head {
+    struct list_head *next, *prev;
+};
+```
+
+顾名思义，next指针指向链表元素的下一个节点，prev指向上一个节点。
+
+
+### 二. 相关操作
+
+- 建立链表
+
+```cpp
+static inline void INIT_LIST_HEAD(struct list_head *list)
+{
+    list->next = list;
+    list->prev = list;
+}
+```
+这是一个空链表，拥有一个链表头，prev和next都指向自己。
+
+- 添加节点
+
+```cpp
+static inline void __list_add(struct list_head *new, struct list_head *prev, struct list_head *next)
+{
+    next->prev = new;
+    new->next = next;
+    new->prev = prev;
+    prev->next = new;
+}
+
+static inline void list_add(struct list_head *new, struct list_head *head)
+{
+    __list_add(new, head, head->next);
+}
+
+static inline void list_add_tail(struct list_head *new, struct list_head *head)
+{
+    __list_add(new, head->prev, head);
+}
+```
+
+list_add把新节点添加到head和next节点之间，所以初始化链表节点的prev不变，且始终位于链表表头，通过head->prev == head即可判断是否是表头。适合实现先进后出的栈。
+而list_add_tail把新的节点加到上一个节点和当前节点之间，所以当前节点的next不受影响，初始化链表节点始终位于表尾， 通过head->next == head即可判断。适合实现先进先出的队列。
+
+- 删除节点
+
+```cpp
+static inline void __list_del(struct list_head *prev, struct list_head *next)
+{
+    next->prev = prev;
+    prev->next = next;
+}
+
+static inline void list_del(struct list_head *entry)
+{
+    __list_del(entry->prev, entry->next);
+    entry->next = LIST_POISON1;
+    entry->prev = LIST_POISON2;
+}
+```
+
+通过连接当前节点的上一节点和当前节点的下一节点过滤掉当前节点，同时不应该还能通过当前节点进入链表，所以把当前节点的prev和next都指向非法地址。
+
+- 替换节点
+
+```cpp
+static inline void list_replace(struct list_head *old,
+				struct list_head *new)
+{
+	new->next = old->next;
+	new->next->prev = new;
+	new->prev = old->prev;
+	new->prev->next = new;
+}
+
+static inline void list_replace_init(struct list_head *old,
+					struct list_head *new)
+{
+	list_replace(old, new);
+	INIT_LIST_HEAD(old);
+}
+```
+
+和删除节点的过程类似，最后重新初始化old链表，这样通过old也就访问不到新的节点了。
+
