@@ -43,9 +43,6 @@ kramdown:
   input: GFM
   syntax_highlighter: rouge
 
-# port
-# port: 1234
-
 # url
 category_dir: category/
 tag_dir: tag/
@@ -55,4 +52,4 @@ excerpt_separator: "\n\n\n\n"
 
 # paginate
 gems: [jekyll-paginate]
-paginate: 6
+paginate: 5
