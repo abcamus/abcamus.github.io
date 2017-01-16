@@ -1,0 +1,75 @@
+---
+layout: post
+title:  "arm gcc编译与链接参数"
+date:   2017-01-02 21:22:37 +0800
+categories: 标签
+excerpt: 虽然当前android啥的是主流，但是在进行裸机开发的时候，熟悉编译器这些参数就很重要了。这篇文章以uboot的编译和链接过程为实例介绍arm gcc相关的参数。
+---
+
+虽然当前android啥的是主流，但是在进行裸机开发的时候，熟悉编译器这些参数就很重要了。下面以uboot的编译和链接过程为实例介绍arm gcc相关的参数。具体内容可以参考
+
+[官方文档]
+[pdf版本下载]
+
+### 编译参数
+
+```shell
+arm-none-linux-gnueabi-gcc -Wp,-MD,common/.main.o.d  -nostdinc -isystem /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/include -Iinclude  -I./arch/arm/include -include ./include/linux/kconfig.h -D__KERNEL__ -D__UBOOT__ -Wall -Wstrict-prototypes -Wno-format-security -fno-builtin -ffreestanding -Os -fno-stack-protector -fstack-usage -Wno-format-nonliteral -D__ARM__ -marm -mno-thumb-interwork -mabi=aapcs-linux -mword-relocations -mno-unaligned-access -ffunction-sections -fdata-sections -fno-common -ffixed-r9 -msoft-float -pipe -march=armv7-a    -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(main)"  -D"KBUILD_MODNAME=KBUILD_STR(main)" -c -o common/main.o common/main.c
+```
+
+- -Wp,-MD,common/.main.o.d  (给预处理器传递option)
+- -nostdinc (不搜索系统头文件==只搜索-I指定的目录以及当前文件所在目录)
+- -isystem /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3/include （指定搜索头文件的目录，优先级在-I后，但是在系统头文件前）
+- -Iinclude （-I: 指定头文件搜索目录include）
+- -I./arch/arm/include (指定头文件搜索目录)
+- -include ./include/linux/kconfig.h （包含指定头文件，类似于在源文件第一行添加#include "file"）
+- -D__KERNEL__ -D__UBOOT__ （编译时使能宏）
+- -Wall -Wstrict-prototypes -Wno-format-security （打开all warning，具体包含哪些参见手册）
+- -fno-builtin （只把以__builtin_开头的函数当成内建函数）
+- -ffreestanding （不约定标准库和程序入口==-fno-hosted）
+- -Os （优化等级super）
+- -fno-stack-protector （不了解）
+- -fstack-usage （生成stack使用信息，su文件）
+- -Wno-format-nonliteral （不知道）
+- -D__ARM__ （定义宏__ARM__）
+- -marm (和-mthumb用来执行生成的代码在arm模式还是thumb模式执行)
+- -mno-thumb-interwork （没有ARM/Thumb之间的切换）
+- -mabi=aapcs-linux （针对不同系统的调用规则生成代码）
+- -mword-relocations （只对size为word倍数的变量分配绝对地址）
+- -mno-unaligned-access （访问对齐限制）
+- -ffunction-sections （把每个函数放入单独的section中，如果目标文件支持任意数量section）
+- -fdata-sections （同上，只是对象是数据）
+- -fno-common （放置未初始化的全局变量，这里不放到common block中，而是放到data section中）
+- -ffixed-r9 （生成的代码不要用寄存器r9，uboot中用来指向global data）
+- -msoft-float （软件模拟浮点运算，默认选项）
+- -pipe （在compilation stages之间通过pipe通信）
+- -march=armv7-a （指定目标体系结构）
+- -D"KBUILD_STR(s)=#s" （定义宏）
+- -D"KBUILD_BASENAME=KBUILD_STR(main)" （同上） 
+- -D"KBUILD_MODNAME=KBUILD_STR(main)" （同上）
+- -c （只生成目标文件）
+- -o common/main.o （目标文件重命名）
+- common/main.c （源文件路径）
+
+### 链接参数
+```
+arm-none-linux-gnueabi-ld   -pie  --gc-sections -Bstatic -Ttext 0x43e00000 -o u-boot -T u-boot.lds arch/arm/cpu/armv7/start.o --start-group  arch/arm/cpu/built-in.o  arch/arm/cpu/armv7/built-in.o  arch/arm/lib/built-in.o  board/samsung/common/built-in.o  board/samsung/landrover/built-in.o  common/built-in.o  disk/built-in.o  drivers/built-in.o  drivers/dma/built-in.o  drivers/gpio/built-in.o  drivers/i2c/built-in.o  drivers/mmc/built-in.o  drivers/mtd/built-in.o  drivers/mtd/onenand/built-in.o  drivers/mtd/spi/built-in.o  drivers/net/built-in.o  drivers/net/phy/built-in.o  drivers/pci/built-in.o  drivers/power/built-in.o  drivers/power/battery/built-in.o  drivers/power/fuel_gauge/built-in.o  drivers/power/mfd/built-in.o  drivers/power/pmic/built-in.o  drivers/serial/built-in.o  drivers/spi/built-in.o  drivers/usb/eth/built-in.o  drivers/usb/gadget/built-in.o  drivers/usb/host/built-in.o  drivers/usb/musb-new/built-in.o  drivers/usb/musb/built-in.o  drivers/usb/phy/built-in.o  drivers/usb/ulpi/built-in.o  dts/built-in.o  fs/built-in.o  lib/built-in.o  net/built-in.o  test/built-in.o  test/dm/built-in.o --end-group arch/arm/lib/eabi_compat.o  -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3 -lgcc -Map u-boot.map
+```
+
+- -pie （生成位置无关position independent executable）
+- --gc-sections （不知道）
+- -Bstatic （和-Bdynamic，为了和Diab？兼容）
+- -Ttext 0x43e00000 （指定代码段地址）
+- -o u-boot （目标重命名）
+- -T u-boot.lds （指定链接脚本）
+- arch/arm/cpu/armv7/start.o （要链接的文件）
+- --start-group （不知）
+- arch/arm/cpu/built-in.o  arch/arm/cpu/armv7/built-in.o  arch/arm/lib/built-in.o  board/samsung/common/built-in.o  board/samsung/landrover/built-in.o  common/built-in.o  disk/built-in.o  drivers/built-in.o  drivers/dma/built-in.o  drivers/gpio/built-in.o  drivers/i2c/built-in.o  drivers/mmc/built-in.o  drivers/mtd/built-in.o  drivers/mtd/onenand/built-in.o  drivers/mtd/spi/built-in.o  drivers/net/built-in.o  drivers/net/phy/built-in.o  drivers/pci/built-in.o  drivers/power/built-in.o  drivers/power/battery/built-in.o  drivers/power/fuel_gauge/built-in.o  drivers/power/mfd/built-in.o  drivers/power/pmic/built-in.o  drivers/serial/built-in.o  drivers/spi/built-in.o  drivers/usb/eth/built-in.o  drivers/usb/gadget/built-in.o  drivers/usb/host/built-in.o  drivers/usb/musb-new/built-in.o  drivers/usb/musb/built-in.o  drivers/usb/phy/built-in.o  drivers/usb/ulpi/built-in.o  dts/built-in.o  fs/built-in.o  lib/built-in.o  net/built-in.o  test/built-in.o  test/dm/built-in.o （一大堆要链接的文件）
+- --end-group （同--start-group一起）
+- arch/arm/lib/eabi_compat.o （同样是要链接的文件）
+- -L /home/camus/arm-2014.05/bin/../lib/gcc/arm-none-linux-gnueabi/4.8.3 （library搜索目录）
+- -lgcc （指定libgcc.a）
+- -Map u-boot.map （指定存放最终镜像内存映射信息的文件）
+
+官方文档： https://gcc.gnu.org/onlinedocs/
+pdf版本下载：https://gcc.gnu.org/onlinedocs/gcc-4.8.5/gcc.pdf

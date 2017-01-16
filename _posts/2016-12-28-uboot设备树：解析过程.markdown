@@ -1,0 +1,234 @@
+---
+layout: post
+title:  "uboot设备树：解析过程分析"
+date:   2016-12-28 15:32:37 +0800
+categories: uboot
+tags: uboot
+excerpt: 以设备树在内存中的分布结构为突破口，介绍解码过程。
+---
+
+* menu
+{:toc}
+
+![uboot设备树内存分布](http://img.blog.csdn.net/20161227152910656?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvYWJjYW11cw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+重点还是这张图，来自 http://blog.csdn.net/abcamus/article/details/53890694
+
+整体看下来解析过程的代码比较杂糅。吐槽一下，例如
+
+```c
+int fdt_first_property_offset(const void *fdt, int nodeoffset)；
+```
+
+和
+
+```c
+int fdt_next_property_offset(const void *fdt, int offset):
+```
+
+是完全一样的接口，如果是我，就写成一个函数`fdt_get_property_offset`了，返回下一个节点的offset，像她这样真是冗余。
+
+这里就不按照函数执行流行来了。按照功能划分，对功能点逐个说明。
+
+## 一、基本字符串操作：
+
+```c
+const char *q;
+
+while (*p == '/')
+	p++;
+if (! *p)
+	return offset;
+q = strchr(p, '/');
+if (! q)
+	q = end;
+```
+
+因为节点的路径名字是以"/name/name/"这个形式保存的，这段代码就是用来扣name的。p保存name的起始地址，q保存name的结束地址，q-p就是name的长度了（=strlen(name)）。
+
+## 二、设备树操作
+
+### 2.1 搜索类接口
+此类接口用来在设备树中搜索相应的信息，不从搜索层次包括字符，标签tag，节点。
+#### 2.1.1 寻找固定偏移处的字符
+
+这个函数封装的不好，在实际用的时候，这个len只是起到边界检查的作用，其实在函数外面会对offset做额外处理，那么每次len=1就可以了。
+```c
+/* 返回fdt中偏移offset的字符的地址 */
+const void *fdt_offset_ptr(const void *fdt, int offset, unsigned int len)
+{
+	const char *p;
+
+	if (fdt_version(fdt) >= 0x11)
+		if (((offset + len) < offset)
+		    || ((offset + len) > fdt_size_dt_struct(fdt)))
+			return NULL;
+
+	// 和内存分布图对应
+	p = _fdt_offset_ptr(fdt, offset);
+
+	if (p + len < p)
+		return NULL;
+	return p;
+}
+```
+
+
+#### 2.1.2 寻找下一个tag
+这个函数寻找当前偏移（startoffset）处的tag，并保存nextoffset，这个nextoffset指向下一个node。
+
+```c
+uint32_t fdt_next_tag(const void *fdt, int startoffset, int *nextoffset)
+{
+	const fdt32_t *tagp, *lenp;
+	uint32_t tag;
+	int offset = startoffset;
+	const char *p;
+
+	*nextoffset = -FDT_ERR_TRUNCATED;
+	tagp = fdt_offset_ptr(fdt, offset, FDT_TAGSIZE);
+	if (!tagp)
+		return FDT_END; /* premature end */
+	tag = fdt32_to_cpu(*tagp);
+	offset += FDT_TAGSIZE;
+
+	*nextoffset = -FDT_ERR_BADSTRUCTURE;
+	switch (tag) {
+	case FDT_BEGIN_NODE:
+		/* skip name */
+		do {
+			p = fdt_offset_ptr(fdt, offset++, 1);
+		} while (p && (*p != '\0'));
+		if (!p)
+			return FDT_END; /* premature end */
+		break;
+
+	case FDT_PROP:
+		lenp = fdt_offset_ptr(fdt, offset, sizeof(*lenp));
+		if (!lenp)
+			return FDT_END; /* premature end */
+		/* skip-name offset, length and value */
+		offset += sizeof(struct fdt_property) - FDT_TAGSIZE
+			+ fdt32_to_cpu(*lenp);
+		break;
+
+	case FDT_END:
+	case FDT_END_NODE:
+	case FDT_NOP:
+		break;
+
+	default:
+		return FDT_END;
+	}
+
+	if (!fdt_offset_ptr(fdt, startoffset, offset - startoffset))
+		return FDT_END; /* premature end */
+
+	*nextoffset = FDT_TAGALIGN(offset);
+	return tag;
+}
+```
+
+有几个`_fdt_check_*`系列函数使用上述函数，用来返回下一个tag的偏移地址。
+
+```
+int _fdt_check_node_offset(const void *fdt, int offset);
+int _fdt_check_prop_offset(const void *fdt, int offset);
+```
+
+#### 2.1.3 寻找下一个节点
+
+*depth表示需要搜索下一个node的深度，因为node是嵌套的，最深的就是根节点了。depth==NULL表示不带深度信息搜索，就是找下一个`FDT_BEGIN_NODE`。
+
+```c
+/* 这个接口返回下一个节点的偏移
+ * 如果*depth为小于等于0，那么遇到FDT_END_NODE立刻返回nextoffset
+ * 如果*depth等于1，那么在遇到下一个FDT_BEGIN_NODE前，遇到第二个FDT_END_NODE就返回。
+ */
+int fdt_next_node(const void *fdt, int offset, int *depth)
+{
+	int nextoffset = 0;     // 下一个tag的offset
+	uint32_t tag;           // 当前offset的tag
+
+	if (offset >= 0)
+		if ((nextoffset = _fdt_check_node_offset(fdt, offset)) < 0)
+			return nextoffset;
+
+	do {
+		/* 找下一个tag，如果是DFT_BEGIN_NODE，则返回这个tag的offset
+		 * 深度保存地址为depth
+		 */
+		offset = nextoffset;
+		tag = fdt_next_tag(fdt, offset, &nextoffset);
+
+		switch (tag) {
+		case FDT_PROP:
+		case FDT_NOP:
+			break;
+
+		case FDT_BEGIN_NODE:
+			if (depth)
+				(*depth)++;
+			break;
+
+		case FDT_END_NODE:
+			if (depth && ((--(*depth)) < 0))
+				return nextoffset;
+			break;
+
+		case FDT_END:
+			if ((nextoffset >= 0)
+			    || ((nextoffset == -FDT_ERR_TRUNCATED) && !depth))
+				return -FDT_ERR_NOTFOUND;
+			else
+				return nextoffset;
+		}
+	} while (tag != FDT_BEGIN_NODE);
+
+	return offset;
+}
+```
+
+#### 扩展
+
+- 搜索下一层节点
+只搜索子节点，也就意味着跳过兄弟节点。这个限制通过depth来实现，初值设为0，检查返回值是否是1，如果是1，说明是发现了另一个`FDT_BEGIN_NODE`跟着一个`FDT_BEGIN_NODE`。如果同时满足name相同，就返回这个节点的offset。
+```
+int fdt_subnode_offset_namelen(const void *fdt, int offset,
+			       const char *name, int namelen)
+{
+	int depth;
+
+	FDT_CHECK_HEADER(fdt);
+
+	for (depth = 0;
+	     (offset >= 0) && (depth >= 0);
+	     offset = fdt_next_node(fdt, offset, &depth))
+		if ((depth == 1)
+		    && _fdt_nodename_eq(fdt, offset, name, namelen))
+			return offset;
+
+	if (depth < 0)
+		return -FDT_ERR_NOTFOUND;
+	return offset; /* error */
+}
+```
+
+#### 2.1.4 fdt_get*类函数
+
+这类函数用来获取节点或者属性，都是通过以上这些接口实现的。具体不表了，和开头的内存分布结构是对应的。
+
+```c
+const void *fdt_getprop(const void *fdt, int nodeoffset,
+			const char *name, int *lenp);
+const struct fdt_property *fdt_get_property_namelen(const void *fdt, int offset, const char *name, int namelen, int *lenp);
+```
+
+### 2.2 信息匹配接口
+这类接口通常带有check字样，用来确定是否和要求匹配的信息对应。
+
+#### 2.2.1 检查compatible
+```c
+/* lib/libfdt/fdt_ro.c */
+int fdt_node_check_compatible(const void *fdt, int nodeoffset, const char *compatible);
+```

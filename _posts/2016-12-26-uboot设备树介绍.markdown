@@ -1,0 +1,135 @@
+---
+layout: post
+title:  "uboot 设备树： 基本概念和源码介绍"
+date:   2016-12-26 21:22:37 +0800
+categories: uboot
+excerpt: 介绍dts文件的基本概念，帮助理解dtb的编码和解码
+---
+
+* menu
+{:toc}
+
+arm uboot的设备树源文件位于`arch/arm/dts/`目录下，网络上有很多介绍Linux设备树概念的文章，这里以dts相关的API为切入点，如果都懂了，设备树的东西就迎刃而解了。本篇文章首先记录一些基本知识，下一篇进行源码分析。
+
+## 一、设备树文件基础
+
+这里的内容根据`kernel/Documentation/devicetree/booting-without-of.txt`,翻译加总结而来。有这些概念理解源码就不会有设备树相关知识性的问题了。
+
+dtb文件由dts文件通过dtc工具编译而来，用来描述硬件配置。
+
+dts叫设备树，顾名思义，就是以树结构来描述设备。树的成员称为节点，有一个根节点，只有根节点没有父亲节点，其他节点有且只有一个父亲节点。
+
+#### 节点名字
+根节点没有名字，路径为"/"
+    每个节点有两个名字，真正的名字包含在名为name的属性中，还有一个unit name，用来区分同一层级上拥有相同name的节点，由node name，@和unit address构成。通常用来表示在设备树中的路径。路径用"/father1/father2/"表示。
+#### compatible 属性
+每个表示实际设备的节点需要compatible属性，用来表示向后完全兼容的硬件。
+#### phandle or linux,phandle
+    可以通过其他节点属性来引用的节点必须有这个属性。
+#### 简单示例
+
+```shell
+    / o device-tree
+      |- name = "device-tree"
+      |- model = "MyBoardName"
+      |- compatible = "MyBoardFamilyName"
+      |- #address-cells = <2>
+      |- #size-cells = <2>
+      |- linux,phandle = <0>
+      |
+      o cpus
+      | | - name = "cpus"
+      | | - linux,phandle = <1>
+      | | - #address-cells = <1>
+      | | - #size-cells = <0>
+      | |
+      | o PowerPC,970@0
+      |   |- name = "PowerPC,970"
+      |   |- device_type = "cpu"
+      |   |- reg = <0>
+      |   |- clock-frequency = <0x5f5e1000>
+      |   |- 64-bit
+      |   |- linux,phandle = <2>
+      |
+      o memory@0
+      | |- name = "memory"
+      | |- device_type = "memory"
+      | |- reg = <0x00000000 0x00000000 0x00000000 0x20000000>
+      | |- linux,phandle = <3>
+      |
+      o chosen
+        |- name = "chosen"
+        |- bootargs = "root=/dev/sda2"
+        |- linux,phandle = <4>
+```
+
+"/"是根节点，他的unit name为device tree，拥有name, model, compatible等属性，其他的也类似。
+
+### 1.2 设备树的结构块
+结构块描述每个节点的结构。每个节点内容包含：
+    一个开始标识符，全路径，属性列表，子节点列表，一个结束标识符。
+    
+```shell
+    the basic structure of a single node:
+
+     * token OF_DT_BEGIN_NODE (that is 0x00000001)
+     * for version 1 to 3, this is the node full path as a zero
+       terminated string, starting with "/". For version 16 and later,
+       this is the node unit name only (or an empty string for the
+       root node)
+     * [align gap to next 4 bytes boundary]
+     * for each property:
+     * token OF_DT_PROP (that is 0x00000003)
+     * 32-bit value of property value size in bytes (or 0 if no
+          value)
+     * 32-bit value of offset in string block of property name
+     * property value data if any
+     * [align gap to next 4 bytes boundary]
+     * [child nodes if any]
+     * token OF_DT_END_NODE (that is 0x00000002)
+```
+
+### 1.3 设备树字符串块
+为了节省空间，属性名字被单独放在strings block中，structure block中的属性定义包含了属性值在strings block中的偏移。
+
+基本知识就简单罗列到这里，其实要理解设备树做到两点就可以了：
+
+1. 理解节点组织方式
+2. 理解<属性，值>对的含义
+
+## 二. dts相关源代码
+位于`$(tree)/lib/`以及`$(tree)/lib/libfdt/`。完成Flattened Device Tree Decode的功能。
+
+```shell
+43e440a0 <__dtb_dt_begin>:
+/* 这是magic number: 0xd00dfeed */
+43e440a0:	edfe0dd0 	ldcl	13, cr0, [lr, #832]!	; 0x340
+43e440a4:	2f360000 	svccs	0x00360000
+43e440a8:	78000000 	stmdavc	r0, {}	; <UNPREDICTABLE>
+```
+
+**libfdt介绍： **
+>The libfdt functionality was written by David Gibson.  The original
+source came from the git repository:
+
+>URL:		git://ozlabs.org/home/dgibson/git/libfdt.git
+
+>author		David Gibson <dgibson@sneetch.(none)>
+		Fri, 23 Mar 2007 04:16:54 +0000 (15:16 +1100)
+>committer	David Gibson <dgibson@sneetch.(none)>
+		Fri, 23 Mar 2007 04:16:54 +0000 (15:16 +1100)
+>commit		857f54e79f74429af20c2b5ecc00ee98af6a3b8b
+>tree		2f648f0f88225a51ded452968d28b4402df8ade0
+>parent		07a12a08005f3b5cd9337900a6551e450c07b515
+
+>To adapt for u-boot usage, only the applicable files were copied and
+>imported into the u-boot git repository.
+Omitted:
+* GPL - u-boot comes with a copy of the GPL license
+* test subdirectory - not directly useful for u-boot
+
+>After importing, other customizations were performed.  See the git log
+for details.
+
+>Jerry Van Baren
+
