@@ -28,7 +28,7 @@ GNU 汇编中的_start原语会告诉链接器把特定代码放到指定位置�
 易失性存储器中，典型应用下，复位向量包含一条指向ROM中启动代码的指令。
 示例如下：
 
-```assembler
+```c
 start
 B Reset_Handler
 B Undefined_Handler
@@ -41,7 +41,8 @@ B IRQ_Handler
 ```
 ###然后指定各个模式下的栈
 譬如
-```assembler
+
+```c
 LDR R0, stack_base
 @ Enter each mode in turn and set up the stack pointer
 MSR CPSR_c, #Mode_FIQ:OR:I_Bit:OR:F_Bit ;
@@ -53,7 +54,7 @@ MOV SP, R0
 
 ### 初始化Cache, MMU
 
-```assembler
+```c
 @ Disable MMU
 MRC p15, 0, r1, c1, c0, 0
 BIC r1, r1, #0x1
@@ -158,7 +159,7 @@ MCR p15, 0, r1, c1, c0, 0		@ Write Control Register configuration data
 ### 多核考量
 基本的初始化到此就结束了，特别要注意多核时候的cpu特性，如果是多核，首先要决定当前是在哪个核上执行，代码如下
 
-```assembler
+```c
 @ Only CPU 0 performs initialization. Other CPUs go into WFI
 @ to do this, first work out which CPU this is
 @ this code typically is run before any other initialization step
@@ -206,7 +207,7 @@ bootloader一般还会设置串口，让内核可以探测到这个端口，然�
 设备树的数据格式遵循IEEE 1275规范。 为了简化系统描述，设备树数据通过源码(.dts)表示。
 一个设备树节点必须遵从如下语法：
 
-```dts
+```shell
 [label:] node-name[@unit-address] {
   [properties definitions]
   [child nodes]
@@ -217,7 +218,7 @@ bootloader一般还会设置串口，让内核可以探测到这个端口，然�
 通过设备树编译器(DTC: Device Tree Compiler)来把设备树源文件（.dts）转成Device Tree Blob(dtb)格式。Linux在系统启动的时候会首先加载dtb。
 一个根节点的示例如下，model属性和兼容性属性表示形式为<manufacture>,<model>
 
-```dts
+```shell
 / {
 	model = "arm,versatilepb";
 	compatible = "arm,versatilepb";
