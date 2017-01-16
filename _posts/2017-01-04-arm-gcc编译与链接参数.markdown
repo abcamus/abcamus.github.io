@@ -1,15 +1,19 @@
 ---
 layout: post
 title:  "arm gcc编译与链接参数"
-date:   2017-01-02 21:22:37 +0800
-categories: 标签
+date:   2017-01-04 21:22:37 +0800
+categories: 嵌入式开发
+tags: armgcc
 excerpt: 虽然当前android啥的是主流，但是在进行裸机开发的时候，熟悉编译器这些参数就很重要了。这篇文章以uboot的编译和链接过程为实例介绍arm gcc相关的参数。
 ---
 
+* menu
+{:toc}
+
 虽然当前android啥的是主流，但是在进行裸机开发的时候，熟悉编译器这些参数就很重要了。下面以uboot的编译和链接过程为实例介绍arm gcc相关的参数。具体内容可以参考
 
-[官方文档]
-[pdf版本下载]
+- [官方文档]
+- [pdf版本下载]
 
 ### 编译参数
 
@@ -71,5 +75,5 @@ arm-none-linux-gnueabi-ld   -pie  --gc-sections -Bstatic -Ttext 0x43e00000 -o u-
 - -lgcc （指定libgcc.a）
 - -Map u-boot.map （指定存放最终镜像内存映射信息的文件）
 
-官方文档： https://gcc.gnu.org/onlinedocs/
-pdf版本下载：https://gcc.gnu.org/onlinedocs/gcc-4.8.5/gcc.pdf
+[官方文档]: https://gcc.gnu.org/onlinedocs/
+[pdf版本下载]: https://gcc.gnu.org/onlinedocs/gcc-4.8.5/gcc.pdf

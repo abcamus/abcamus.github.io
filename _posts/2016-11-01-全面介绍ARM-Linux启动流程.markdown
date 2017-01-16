@@ -1,0 +1,258 @@
+---
+layout: post
+title:  "全面介绍ARM Linux启动流程"
+date:   2016-11-01 21:22:37 +0800
+categories: 嵌入式开发
+tags: arm linux
+excerpt: 介绍arm裸机启动Linux过程，涉及中断处理，I/O，内存映射相关知识。
+---
+
+* menu
+{:toc}
+
+本文介绍arm核cpu裸机启动过程。在cpu reset之后，pc会指向reset vector (地址位于0x00000000 or 0xFFFF0000)，此时的代码需要做以下几件事情：
+
+- 在多核系统中，让非主要核睡眠。
+- 初始化异常向量
+- 初始化memory，包括MMU
+- 初始化不同模式下的栈以及寄存器
+- 初始化关键I/O设备
+- 针对NEON或VFP做些必要的初始化
+- 使能中断
+- 改变核心模式或者状态
+- 如果需要，做一些必要的安全性配置
+- 调用main()函数
+
+### 首先要确认异常向量表里放了正确的指令，指向合适的处理程序。
+GNU 汇编中的_start原语会告诉链接器把特定代码放到指定位置，所以可以用来放置向量表。初始向量表位于非
+易失性存储器中，典型应用下，复位向量包含一条指向ROM中启动代码的指令。
+示例如下：
+
+```assembler
+start
+B Reset_Handler
+B Undefined_Handler
+B SWI_Handler
+B Prefetch_Handler
+B Data_Handler
+NOP @ Reserved vector
+B IRQ_Handler
+@ FIQ_Handler will follow directly after this table
+```
+###然后指定各个模式下的栈
+譬如
+```assembler
+LDR R0, stack_base
+@ Enter each mode in turn and set up the stack pointer
+MSR CPSR_c, #Mode_FIQ:OR:I_Bit:OR:F_Bit ;
+MOV SP, R0
+SUB R0, R0, #FIQ_Stack_Size
+MSR CPSR_c, #Mode_IRQ:OR:I_Bit:OR:F_Bit ;
+MOV SP, R0
+```
+
+### 初始化Cache, MMU
+
+```assembler
+@ Disable MMU
+MRC p15, 0, r1, c1, c0, 0
+BIC r1, r1, #0x1
+MCR p15, 0, r1, c1, c0, 0
+@ Disable L1 Caches
+MRC p15, 0, r1, c1, c0, 0  @ Read Control Register configuration data
+BIC r1, r1, #(0x1 << 12)   @ Disable I Cache
+BIC r1, r1, #(0x1 << 2)    @ Disable D Cache
+MCR p15, 0, r1, c1, c0, 0  @ Write Control Register configuration data
+
+@ Invalidate L1 Caches
+@ Invalidate Instruction cache
+MOV r1, #0
+MCR p15, 0, r1, c7, c5, 0
+@ Invalidate Data cache
+@ to make the code general purpose, we calculate the
+@ cache size first and loop through each set + way
+MRC p15, 1, r0, c0, c0, 0	@ Read Cache Size ID
+LDR r3, #0x1ff
+AND r0, r3, r0, LSR #13		@ r0 = no. of sets - 1
+MOV r1, #0			@ r1 = way counter way_loop
+way_loop:
+MOV r3, #0			@ r3 = set counter set_loop
+set_loop:
+MOV r2, r1, LSL #30		@
+ORR r2, r3, LSL #5		@ r2 = set/way cache operation format
+MCR p15, 0, r2, c7, c6, 2	@ Invalidate line described by r2
+ADD r3, r3, #1			@ Increment set counter
+CMP r0, r3			@ Last set reached yet?
+BGT set_loop			@ if not, iterate set_loop
+ADD r1, r1, #1			@ else, next
+CMP r1, #4			@ Last way reached yet?
+
+BNE way_loop			@ if not, iterate way_loop
+@ Invalidate TLB
+MCR p15, 0, r1, c8, c7, 0
+@ Branch Prediction Enable
+MOV r1, #0
+MRC p15, 0, r1, c1, c0, 0	@ Read Control Register configuration data
+ORR r1, r1, #(0x1 << 11)	@ Global BP Enable bit
+MCR p15, 0, r1, c1, c0, 0	@ Write Control Register configuration data
+```
+
+### 然后就可以创建TTs(translation tables)了，参考代码如下
+
+```cpp
+@ Enable D-side Prefetch
+MRC p15, 0, r1, c1, c0, 1
+@ Read Auxiliary Control Register
+ORR r1, r1, #(0x1 <<2)
+@ Enable D-side prefetch
+MCR p15, 0, r1, c1, c0, 1 ;
+@ Write Auxiliary Control Register
+DSB
+ISB
+@ DSB causes completion of all cache maintenance operations appearing in program
+@ order before the DSB instruction
+@ An ISB instruction causes the effect of all branch predictor maintenance
+@ operations before the ISB instruction to be visible to all instructions
+@ after the ISB instruction.
+@ Initialize PageTable
+@ We will create a basic L1 page table in RAM, with 1MB sections containing a flat
+(VA=PA) mapping, all pages Full Access, Strongly Ordered
+@ It would be faster to create this in a read-only section in an assembly file
+LDR r0, =2_00000000000000000000110111100010 @ r0 is the non-address part of
+descriptor
+LDR r1, ttb_address
+LDR r3, = 4095
+@ loop counter
+write_pte
+ORR r2, r0, r3, LSL #20		@ OR together address & default PTE bits
+STR r2, [r1, r3, LSL #2]	@ write PTE to TTB
+SUBS r3, r3, #1			@ decrement loop counter
+BNE write_pte
+
+@ for the very first entry in the table, we will make it cacheable, normal,
+write-back, write allocate
+BIC r0, r0, #2_1100			@ clear CB bits
+ORR r0, r0, #2_0100			@ inner write-back, write allocate
+BIC r0, r0, #2_111000000000000		@ clear TEX bits
+ORR r0, r0, #2_101000000000000		@ set TEX as write-back, write allocate
+ORR r0, r0, #2_10000000000000000	@ shareable
+STR r0, [r1]
+
+@ Initialize MMU
+MOV r1,#0x0
+MCR p15, 0, r1, c2, c0, 2		@ Write Translation Table Base Control Register
+LDR r1, ttb_address
+MCR p15, 0, r1, c2, c0, 0		@ Write Translation Table Base Register 0
+
+@ In this simple example, we don't use TRE or Normal Memory Remap Register.
+@ Set all Domains to Client
+LDR r1, =0x55555555
+MCR p15, 0, r1, c3, c0, 0		@ Write Domain Access Control Register
+
+@ Enable MMU
+MRC p15, 0, r1, c1, c0, 0		@ Read Control Register configuration data
+ORR r1, r1, #0x1			@ Bit 0 is the MMU enable
+MCR p15, 0, r1, c1, c0, 0		@ Write Control Register configuration data
+```
+
+### 多核考量
+基本的初始化到此就结束了，特别要注意多核时候的cpu特性，如果是多核，首先要决定当前是在哪个核上执行，代码如下
+
+```assembler
+@ Only CPU 0 performs initialization. Other CPUs go into WFI
+@ to do this, first work out which CPU this is
+@ this code typically is run before any other initialization step
+MRC p15, 0, r1, c0, c0, 5	@ Read Multiprocessor Affinity Register
+AND r1, r1, #0x3		@ Extract CPU ID bits
+CMP r1, #0
+BEQ initialize			@ if we’re on CPU0 goto the start
+
+wait_loop:
+@ Other CPUs are left powered-down
+.....
+.....
+.....
+initialize:
+@ next section of boot code goes here
+```
+
+### 引导Linux
+如果内核镜像已经位于内存中了，那么基于ARM的设备引导过程和桌面系统是类似的。但是由于手机上或者其他嵌入式设备上没有硬盘以及像PC中的BIOS，在这些设备上，启动的过程可能会很不一样。
+
+典型情况下， 系统刚上电时， 硬件相关的启动代码从flash或者ROM中执行。这部分代码负责初始化系统，包括一些必要的外设，然后启动bootloader，并且初始化主存，把内核镜像拷贝到主存储器中（从flash设备，板上内存，MMC，主机PC或者别的什么地方）。bootloader接着把特定的参数传给内核，然后Linux内核自解压，初始化数据结构，执行用户进程。
+
+### 复位处理函数
+复位处理函数需要负责初始化memory controllers以及一些系统外设，在内存中设置栈，而且一般会把自身拷贝到RAM中。然后改变硬件memory映射，使得异常向量地址映射到初始化好的RAM中，这部分代码和操作系统没有关系，完成后启动bootloader，例如U-BOOT。
+
+### bootloader
+bootloader在内核启动前做一些初始化工作，有时候也不是必须的
+
+- 初始化内存系统以及一些外设
+- 把内核镜像加载到内存中适当的位置（也可能是一个ram disk）
+- 产生传给内核的启动参数（包括机器类型码）
+- 配置好一个终端
+- 进入内核
+
+### 内核镜像
+典型的内核镜像是zImage。zImage镜像的头部包含魔术字，用来表示压缩率，还有开始结束地址。内核代码是位置无关的，能够被加载到memory中的任何地方，通常，它被放置在物理起始地址偏移0x8000的地方，0x100用来存放参数（translation table等）。
+许多系统要求有一个初始化的RAM盘(initrd)，用RAM盘可以构建一个根文件系统，而不需要初始化驱动。bootloader可以把RAM盘放到memory中，然后通过ATAG\_INITRD2(描述RAM盘物理地址)和ATAG\_RAMDISK。
+bootloader一般还会设置串口，让内核可以探测到这个端口，然后作为终端使用。内核命令行参数 `console=`用来传递这个信息。
+
+### 通过ATAGS传递内核参数
+历史原因，内核参数是以标记列表的形式传递的，放在物理RAM中，通过R2寄存器来存放列表地址。标记头存放两个32位整型值，第一个表示标记的大小，以word为单位；第二个提供标记值（表明标记类型）。标记列表的具体内容参考相关文档。现在更加通用的方法是通过设备树Flattened Device Tree(FDTs)传递这些信息。
+
+### 通过设备树传递内核参数
+设备树是一种描述硬件配置信息的数据结构。它包含了处理器，memory大小以及bank，中断配置和外设等信息。数据结构组织成一个树，跟节点为/。除根节点外，每个节点有唯一的父亲节点。每个节点有一个名字，而且可以有任意数量的子节点。节点也可以包含带名字的属性值，属性值可以是任意数据，它们表示键值(key-value)对。
+设备树的数据格式遵循IEEE 1275规范。 为了简化系统描述，设备树数据通过源码(.dts)表示。
+一个设备树节点必须遵从如下语法：
+
+```dts
+[label:] node-name[@unit-address] {
+  [properties definitions]
+  [child nodes]
+}
+```
+
+节点通过名字和unit-address表示，方括号表示节点定义的开始和结束。
+通过设备树编译器(DTC: Device Tree Compiler)来把设备树源文件（.dts）转成Device Tree Blob(dtb)格式。Linux在系统启动的时候会首先加载dtb。
+一个根节点的示例如下，model属性和兼容性属性表示形式为<manufacture>,<model>
+
+```dts
+/ {
+	model = "arm,versatilepb";
+	compatible = "arm,versatilepb";
+	#address-cells = <1>;
+	#size-cells = <1>;
+memory {
+	name = "memory";
+	device_type = "memory";
+	reg = <0x0 0x08000000>;
+};
+chosen {
+	bootargs = “console=ttyAMA0 debug”;
+	}
+};
+```
+
+### 内核入口
+内核代码必须执行在cpu核心正确状态下。bootloader通过直接跳转到内核第一条指令，位于`arch/arm/boot/compressed/head.S`的start标签，来启动内核。MMU和DCache此时必须是禁止的。核心必须属于监管（Supervisor）模式，CPSR的I位和F为置1（禁止IRQ和FIQ）。R0必须是0, R1为MACH_TYPE，R2为参数标记列表地址。
+
+内核工作的第一步是解压缩。这和体系结构无关。内核保存bootlader穿过来的参数，使能cache和MMU。解压缩之前首先检查解压缩的镜像会不会覆盖压缩镜像，如果检查通过，那么调用`arch/arm/boot/compressed/misc.c` 中的 `decompress_kernel()`。然后清理和失效缓存，接着再次禁用。然后跳转到`arch/arm/kernel/head.S`中的内核起始地址。
+
+### 平台相关动作
+到这里就需要执行一系列的平台相关的任务了。首先通过`__lookup_processor_type()`检查核心类型，返回码用来标记当前是运行在哪个核心上面。函数`__lookup_machine_type()`用来查看机器类型。定义了一个初级的Translation Table，用来映射内核代码。cache和MMU初始化并设置其他一些控制寄存器。数据段被拷贝到RAM，然后调用start_kernel()。
+
+### 内核启动代码
+原则上，这部分代码是和体系结构无关的， 但实际上，某些函数依然依赖于硬件。
+1. IRQ中断通过`local_irq_disable()`禁止，`lock_kernel()`用来禁用FIQ中断， 初始化滴答控制系统，memory系统以及体系结构相关的子系统， 处理从bootloader传过来的命令行选项。
+2. 配置栈， 初始化调度器。
+3. 设置好各种各样的内存区域，分配好内存页。
+4. 配置中断和异常表以及相应的处理函数， 以及GIC。
+5. 配置系统定时器，此时，使能IRQ，进行额外的内存系统初始化，然后通过BogoMips来校准核心时钟。
+6. 配置内核内部组建，例如文件系统， init进程以及用来创建内核线程的内核守护线程。
+7. 解锁内核（使能FIQ），开始调度。
+8. 调用函数`do_basic_setup()`来初始化驱动，sysctl， 工作队列和网络套接字。这时候，核心切换到用户模式。
+
+Linux虚拟内存分布视图
+![这里写图片描述](http://img.blog.csdn.net/20161101225016857)
+这里的ZI表示zero-initialized data。内核内存使用全局映射，用户内存使用非全局映射。应用代码开始于0x1000，也就是说空余了4KB，用来捕捉空指针引用。
