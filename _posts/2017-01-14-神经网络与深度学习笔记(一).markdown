@@ -1,6 +1,7 @@
 ---
 layout:	post
 title:	"神经网络与深度学习（一）"
+author: Kai Qiu
 date:	2017-01-14
 categories:	读书随笔
 tags: 神经网络 深度学习
