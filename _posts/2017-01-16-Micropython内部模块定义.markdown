@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Micropython开发：内部模块定义及扩展"
-author: 裘凯
+author: Kai Qiu
 date:   2017-01-16 12:04:37 +0800
 categories: Micropython
 tags: Micropython
