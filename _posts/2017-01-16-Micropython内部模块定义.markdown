@@ -4,6 +4,7 @@ title:  "Micropython开发：内部模块定义及扩展"
 author: 裘凯
 date:   2017-01-16 12:04:37 +0800
 categories: Micropython
+tags: Micropython
 excerpt: Micropython需要支持导入模块，同时，设备驱动也要能够以python模块的形式工作，那么在python解释中必须实现这种接口，这篇文章就介绍Micropython是如何支持模块的。
 ---
 

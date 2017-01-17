@@ -1,6 +1,6 @@
 ---
 layout:	post
-title:	"Micropython开发: 介绍"
+title:	"Micropython开发: 认识Micro Python"
 date:	2017-01-04
 categories:	Micropython
 tags: Micropython

@@ -1,6 +1,6 @@
 ---
 layout:	post
-title:	"Micropython开发： 解释器移植"
+title:	"Micropython开发：解释器移植"
 date:	2017-01-12
 categories:	Micropython
 tags: Micropython
