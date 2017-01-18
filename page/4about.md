@@ -14,8 +14,8 @@ type: page
 ## 联系我
 
 * [GitHub]()
-* email: abcamus_dev@163.com
-* QQ: 858350702
+* [email](): abcamus_dev@163.com
+* [QQ](): 858350702
 * [知乎]()
 * [Facebook]()
 * [Twitter]()
