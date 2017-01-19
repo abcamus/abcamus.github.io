@@ -124,9 +124,11 @@ STATIC const mp_rom_map_elem_t framebuf_locals_dict_table[] = {
 对象属性名字为MP_QSTR_name，属性对象指向MP_ROM_PTR(obj)定义的内容，而obj则通过`STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(framebuf_text_obj, 4, 5, framebuf_text);`定义。
 
 所有属性对象的处理函数都有形如
+
 ```c
 STATIC mp_obj_t func_name(size_t n_args, const mp_obj_t *args)
 ```
+
 的形式。
 
 
