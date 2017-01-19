@@ -1,9 +1,10 @@
 ---
 layout:	post
 title:	"Micropython开发（1）: 认识Micro Python"
+author: Kai Qiu
 date:	2017-01-04
 categories:	Micropython
-tags: Micropython
+tags: 嵌入式python 语法支持 交叉编译
 excerpt: 介绍micropython, 包括以下几个方面：1. Micro Python的发展情况，语法特点，代码结构，支持的硬件。2. 介绍了本项目的开发平台： 基于exynos-4412 SoC的开发板。3. 最后初步实验，完成Linux平台下的测试，然后解决交叉编译过程中出现的问题。
 ---
 * titles
