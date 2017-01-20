@@ -15,7 +15,7 @@ excerpt: Micropython需要支持导入模块，同时，设备驱动也要能够
 
 Micropython需要支持导入模块，同时，设备驱动也要能够以python模块的形式工作，那么在python解释中必须实现这种接口。外部模块的定义位于$(tree)/extmod中。模块名字命名为modxxx.c。譬如modframebuf.c
 
-## 一 Python内部模块概览
+## 一 Micro Python内部模块概览
 
 所有的python全局模块从`STATIC const mp_rom_map_elem_t mp_builtin_module_table[]`中查找，这张查找表位于py/objmodule.c。
 
