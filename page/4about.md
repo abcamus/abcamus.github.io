@@ -2,7 +2,7 @@
 layout: page
 title: About
 permalink: /about/
-icon: phone
+icon: user
 type: page
 ---
 
