@@ -2,7 +2,7 @@
 layout: page
 title: About
 permalink: /about/
-icon: qq
+icon: envelope
 type: page
 ---
 
