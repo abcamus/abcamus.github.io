@@ -19,7 +19,8 @@ layout: default
                     </div>
                     {%endif%}
                     <div class="label-card">
-                        {% if post.author %}<i class="fa fa-user"></i>{{ post.author }}
+                      {% if post.author %}<i class="fa fa-user"></i>{{ post.author }}
+                      {%else%}<i class="fa fa-user"></i>佚名
                         {% endif %}
                     </div>
 
