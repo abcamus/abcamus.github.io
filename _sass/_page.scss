@@ -15,12 +15,12 @@
     margin: 0 auto;
     // word-break: break-all;
     .left {
-        width: 80%;
+        width: 78%;
         float: left;
         padding: 20px 30px;
         line-height: 1.6;
-        font-size: 16px;
-        background-color: #f8f8fd;
+        font-size: 14px;
+        background-color: #e8f8ff;
         box-shadow: 0 1px 2px rgba(0,0,0,0.4),0 0 30px rgba(10,10,0,0.1) inset;
         >h1 {
             margin-bottom: -10px;
@@ -92,8 +92,8 @@
         display: none;
     }
     .right {
-        float: left;
-        width: 20%;
+        float: right;
+        width: 22%;
         padding-left: 20px;
         top: 0;
         .fixed {
@@ -138,6 +138,7 @@
             padding-right: 10px;
             line-height: 1.8;
             padding-left: 35px;
+            font-size: 15px;
             ul {
                 padding-left: 20px;
             }
