@@ -6,40 +6,45 @@ layout: default
     <div class="left">
         <h1>Rickey's Blog</h1>
         <small>行走在探索与未知的道路上</small>
-        <hr>
         <ul>
             {% for post in paginator.posts %}
-              <li>
+            <li>
                 <h2>
                   <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
                 </h2>
                 <div class="label">
+                  {%if false%}
                     <div class="label-card">
                         <i class="fa fa-calendar"></i>{{ post.date | date: "%F" }}
                     </div>
+                    {%endif%}
                     <div class="label-card">
-                        {% if post.author %}<i class="fa fa-user"></i>{{ post.author }}
+                      {% if post.author %}<i class="fa fa-user"></i>{{ post.author }}
+                      {%else%}<i class="fa fa-user"></i>佚名
                         {% endif %}
                     </div>
+
+                    {% if false %}
                     <div class="label-card">
                         {% if page.meta %}<i class="fa fa-key"></i>{{ page.meta }}  {% endif %}
                     </div>
 
                     <div class="label-card">
-                    {% include category.html %}
+                      {% include category.html %}
                     </div>
                     <div class="label-card">
-                      {% if false %}
-                      {% include tag.html %} {% endif %}
+                      {% include tag.html %}
                     </div>
+                    {%endif%}
                 </div>
+                <div class="Clear"></div>
                 <div class="excerpt">
                     {{post.excerpt}}
                 </div>
                 <div class="read-all">
                     <a  href="{{ post.url | prepend: site.baseurl }}"><i class="fa fa-newspaper-o"></i>Read All</a>
                 </div>
-                <hr>
+                <div style="width:100%; height:1px; border-top:1px solid #999; clear:both;"></div>
               </li>
             {% endfor %}
         </ul>
@@ -105,7 +110,7 @@ layout: default
             <div class="side">
                 <div>
                     <i class="fa fa-tags"></i>
-                    Tags
+                    标签
                 </div>
                 <div class="tags-cloud">
                     {% assign first = site.tags.first %}
@@ -146,15 +151,15 @@ layout: default
                 </div>
             </div>
 
-            <!-- <div class="side">
+            <div class="side">
                 <div>
                     <i class="fa fa-external-link"></i>
-                    Links
+                    友情链接
                 </div>
                 <ul  class="content-ul">
-
+                  
                 </ul>
-            </div> -->
+            </div>
         </div>
     </div>
 </div>

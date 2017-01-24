@@ -12,16 +12,20 @@
             >li {
                 list-style: none;
             }
+
             li {
                 color: #333;
                 h2 {
                     border: none;
                     font-size: 24px;
                     margin: 0;
+                    float: left;
                 }
                 .label {
+                    margin-top: 10px;
                     margin-bottom: 15px;
                     overflow: hidden;
+                    float: right;
                     .label-card {
                         float: left;
                         margin-right: 15px;
@@ -34,6 +38,9 @@
                     .categories {
                         padding: 0;
                     }
+                }
+                .Clear{
+                    clear:both;
                 }
                 .excerpt {
                     h2 {
@@ -49,6 +56,7 @@
                 .read-all {
                     text-align: right;
                     font-size: 14px;
+                    margin-right: 15px;
                     a {
                         color: #778ab0;
                         transition: 0.2s ease;

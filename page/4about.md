@@ -2,7 +2,7 @@
 layout: page
 title: About
 permalink: /about/
-icon: user
+icon: envelope
 type: page
 ---
 

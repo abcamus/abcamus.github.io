@@ -1,6 +1,7 @@
 ---
 layout:	post
 title:	"Micropython开发（2）：解释器移植"
+author: Kai Qiu
 date:	2017-01-12
 categories:	Micropython
 tags: Micropython
