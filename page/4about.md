@@ -24,8 +24,6 @@ type: page
 ## 关于本站
 本站参考自gaohaoyang同学制作的模板，链接在页脚上。
 
-**若您想使用这个 jekyll 博客主题，请访问：[https://github.com/abcamus/abcamus.github.io](https://github.com/abcamus/abcamus.github.io)**
-
 ## Comments
 
 {% include comments.html %}
