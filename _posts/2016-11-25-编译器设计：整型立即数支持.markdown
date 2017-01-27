@@ -1,0 +1,67 @@
+---
+layout: post
+title:  "编译器设计：整型立即数支持"
+date:   2016-11-25 21:22:37 +0800
+categories: 读书随笔
+tags: 编译器 整型立即数
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+[上一篇文章中](http://blog.csdn.net/abcamus/article/details/53289583)实现了一个文本打印工具（厚脸皮地叫compiler，^_^），这次加入立即数支持，可以return任意整型值（数据类型目前还不支持）。
+
+这次的do_compiler函数采用了闭包机制，实现如下：
+
+```
+def do_compile(fout):
+    def write_to_file(ret_num):
+        fout.write(func_start)
+        fout.write("\n\tmovl\t$%d," %(ret_num) + "%eax")
+        fout.write("\n\tpopq\t%rbp\n\tretq")
+        fout.write(func_end)
+    return write_to_file
+
+if __name__ == "__main__":
+    fin = open("source.c", 'r')
+    fout = open("out.s", 'w')
+    if fout is False:
+        print "Cannot create OUTPUT file"
+        exit
+    add_header(fout)
+    compiler = do_compile(fout)
+    
+    ret_num = 24
+    compiler(ret_num)
+    fin.close()
+    fout.close()
+```
+
+还是很弱智，对不对，下一篇，识别return语句，就要加入词法分析了。
+
+### Makefile支持
+
+这里实现很简单，没有用到任何隐含规则
+
+```
+test: main.o source.o
+	ld main.o source.o -macosx_version_min 10.12 -lc -o test
+
+main.o:
+	gcc -c main.c -o main.o
+
+source.o:
+	gcc -c out.s -o source.o
+
+clean:
+	rm -rf *.o test
+```
+
+### shell 支持
+
+```
+#!/bin/bash
+
+make clean;make
+```
