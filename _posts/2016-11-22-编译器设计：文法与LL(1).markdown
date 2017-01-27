@@ -18,11 +18,11 @@ $$G=(V_n, V_T, P, S)$$，如果产生式$$\alpha\to\beta$$中，$$\alpha\in(V_N\
 
 ### 1型文法（上下文相关文法）
 
-在0型文法的基础上，规定对每一个$$\alpha\to\beta$$，都有$$|\beta|\ge|\alpha|$$
+在0型文法的基础上，规定对每一个$$\alpha\to\beta$$，都有$$\beta\ge\alpha$$
 
 ### 2型文法（上下文无关文法）
 
-在1型文法的基础上满足每一个$$\alpha\to\beta$中$\alpha$$为非终结符。
+在1型文法的基础上满足每一个$$\alpha\to\beta$$中$$\alpha$$为非终结符。
 
 ### 3型文法
 
