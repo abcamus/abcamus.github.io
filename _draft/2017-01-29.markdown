@@ -1,0 +1,71 @@
+---
+layout: post
+title:  "巴科斯范式介绍与范例"
+date:   2017-01-29 21:22:37 +0800
+categories: 读书随笔
+tags: 编译器 编程语言
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+巴科斯范式（BNF范式）用来描述给定语言语法的形式化符号规范，用来指导编译器设计。巴科斯范式本质上是定义一系列递归的符号替
+换规则，用来匹配字符串。
+> 注意编译器设计和程序语言设计并不是一个范畴的内容，编译器是完成对某一或者某类程序设计语言的自动转换，相对于程序设计语言
+来讲，更多的是工程上的工
+作。
+
+## 巴科斯范式内容
+
+1. 在双引号中的字代表这些字符本身
+2. 方括号包含的是可选项
+3. 大括号包含可重复0至无数次的项
+4. 竖线表示在其左右两边任选一项，表示或者。
+5. ::=表示“被定义为”
+
+## 表达式的经典巴科斯范式
+
+>注：为了少打一个字符，这里把::=表示为->
+
+0. Goal -> Expr
+1. Expr -> Expr + Term | Expr - Term | Term
+2. Term -> Term x Factor | Term / Factor | Factor
+3. Factor -> (Expr) | num | name
+
+## 巴科斯范式匹配算法示例
+
+最左匹配的自顶向下语法分析算法
+
+```c
+root = node for the start symbol, S;
+focus = root;
+push(null);
+word = NextWord();
+
+while (true) do:
+	if (focus is a nonterminal) then begin;
+		pick next rule to expand facus (A->b1b2b3b4);
+		build nodes for b1b2b3b4 as children of fucus;
+		push(b4b3b2);
+		focus = b1;
+	end;
+	else if (word matches focus) then begin;
+		word = NextWord();
+		focus = pop()
+	end;
+	else if (word = eof end focus = null)
+		then accept the input and return root;
+		else backtrace;
+end;
+```
+
+## 巴科斯范式的改进
+
+上面的巴科斯范式存在的问题：
+1. 如果范式中存在左递归，最左匹配算法极有可能陷入死循环，因为每一次匹配左边符号的时候都需要展开非终结符。
+2. 如果存在多个推导的时候，可能需要回溯，造成高昂的执行代价。
+
+所以就提出了两个目标：
+1. 如何消除左递归
+2. 如何减少回溯
