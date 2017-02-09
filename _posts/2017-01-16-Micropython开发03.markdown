@@ -69,6 +69,7 @@ const mp_obj_module_t mp_module_framebuf = {
 
 ### 2.3 体验
 在mpconfigport.h中定义
+
 ```c
 #define MICROPY_PY_FRAMEBUF			(1)
 ```
