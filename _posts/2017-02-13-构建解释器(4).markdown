@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "构建解释器: 一个算数运算计算器"
-author: Richey Qiu
+author: Kai Qiu
 date:   2017-02-13 11:05:37 +0800
 categories: 读书随笔
 tags: 解释器
