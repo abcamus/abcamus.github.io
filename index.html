@@ -4,8 +4,10 @@ layout: default
 
 <div class="page clearfix" index>
     <div class="left">
-        <h1>Rickey's Blog</h1>
-        <small>行走在探索与未知的道路上</small>
+      <h1>Rickey's Blog</h1>
+	    <div class="signature">
+          行走在探索与未知的道路上
+		</div>
         <ul>
             {% for post in paginator.posts %}
             <li>
@@ -130,13 +132,27 @@ layout: default
                 </div>
             </div>
 
+			<div data-mod="popu_64"
+                    class="csdn-tracking-statistics" chg-blk="0">
+			  <a id="com-quick-reply" title="快速回复" style="top:311px"></a>
+			  <a id="com-quick-collect" title="我要收藏" style="top:349px"></a>
+			  <a id="com-d-top-a" style="top:387px" title="
+														   返回顶部" onclick=""></a>
+			</div>
+
             <div class="side">
                 <div>
-                    <i class="fa fa-external-link"></i>
-                    友情链接
+                  <li class="fa fa-external-link">
+					友情链接
+				  </li>
                 </div>
                 <ul  class="content-ul">
-                  
+                  <li class="fa fa-archive">
+					<a href="archive">文章存档</a>
+				  </li><br>
+				  <li class="fa fa-weibo">
+					<a href="weibo">新浪微博</a>
+				  </li>
                 </ul>
             </div>
         </div>

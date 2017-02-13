@@ -1,0 +1,109 @@
+---
+layout: post
+title:  "编译器设计：词法分析"
+date:   2016-11-29 21:22:37 +0800
+categories: 读书随笔
+tags: 编译器 词法分析
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+通过python实现了一个能够识别单词的程序，单词定义为
+**以字母开头的任意数字和字母的组合**
+
+#### 1. re模块
+定义字母和数字pattern，通过match对字符进行匹配
+
+#### 2. enum模块
+用来定义识别单词过程中的状态，这里定义了
+
+|初始态		|过程态		|完成态		|错误态|
+:--:|:--:|:--:|:--:|
+开始识别单词	| 已经识别单词的一部分	|识别到一个单词	|出错
+
+代码如下，整个模块通过对字符串line进行分析，所以line是这个模块的输入，输出单词列表 WordList
+
+需要注意的点：
+1. python对变量作用域的规范，这里的line定义在函数之外，在函数内访问时，通过global声明，否则会报 "referenced before assigned" 错误。
+2. 在识别到最后一个字符后，由于没有后续字符可以继续识别，所以手动返回了一个'#'，用来结束单词判断。
+3. 向前搜索的一个字符如果是非单词字符（非字母和数字），将当前字符重新放回line中。放回的过程是，先把line逆转，然后把已经读到的字符放在line末尾，在把line逆转，就相当于把向前读的一个字符又放回了line的头部。
+
+#### 3. 代码
+
+```
+import re
+from enum import Enum
+
+def isalpha(ch):
+    pattern = re.compile('[A-Za-z]')
+    return pattern.match(ch)
+
+def isdigit(ch):
+    pattern = re.compile('[+-]*[0-9]+')
+    return pattern.match(ch)
+
+line = "int main() here is a-test"
+# keyword = {'int':0, 'if':1, 'else':2, '(':3, ')':4, '{':5, '}':6}
+
+def read_char():
+    global line
+    if len(line) > 0:
+        ch = line[0]
+        line = line[1:]
+        return ch
+    else:
+        return '#'
+
+def push_back(ch):
+    global line
+    line = (line[::-1]+ch)[::-1]
+    #print line
+
+def do_lex():
+    WordList = []
+    lexStat = Enum('initial', 'process', 'done', 'error')
+
+    while len(line) > 0:
+        try:
+            word = ''
+            status = lexStat.initial
+            while status is not lexStat.done and (status is not lexStat.error):
+                ch = read_char()
+                if status is lexStat.initial:
+                    if isalpha(ch):
+                        status = lexStat.process
+                        word = word+ch
+                    else:
+                        #print 'Not a word'
+                        status = lexStat.error
+                elif status is lexStat.process:
+                    if isalpha(ch) or isdigit(ch):
+                        status = status
+                        word = word+ch
+                    else:
+                        #print "Found word", word
+                        push_back(ch)
+                        status = lexStat.done
+            if status is lexStat.done:
+                WordList.append(word)
+        except Exception, e:
+            print Exception, ":", e
+            print len(line)
+
+    print WordList
+    return 
+
+if __name__ == '__main__':
+    do_lex()
+```
+
+#### 4. 运行结果
+输出结果如下：
+
+```
+$ python lex.py 
+['int', 'main', 'here', 'is', 'a', 'test']
+```
+
