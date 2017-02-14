@@ -1,0 +1,68 @@
+---
+layout: post
+title:  "构建解释器：1~6部分总结"
+author: Kai Qiu
+date:   2017-02-14 14:11:37 +0800
+categories: 读书随笔
+tags: 解释器
+excerpt: 总结1~6 part的内容
+---
+
+* menu
+{:toc}
+
+通过1到6部分的学习，实现了一个能进行四则运算，具有优先级，支持括号的计算器。能够满足一般计
+算需求的计算器。
+
+### 内容概要
+
+1. 巴科斯范式表示grammar。基本知识，以及如何将优先级信息以BNF形式表示。
+2. syntax diagram 展示识别流程。等效于BNF，BNF可以理解成文本化的syntax diagram。
+3. BNF到python代码的转换
+
+### 体会
+这六部分内容比较简单，基本上前一部分的练习做完后，下一部分内容就解决了大部分了。
+
+截止目前为止，实现的这个计算器有一个bug：
+
+```sh
+host > (1+2)
+3
+host > (1+2))
+3
+host > (1+2))+3
+3
+```
+
+也就是说当又括号数量大于左括号时，并不会检测到语法错误,相关代码实现如下。
+
+```c
+...
+elif self.current_token.type == LPAREN:
+            self.eat(LPAREN)
+            result = self.expr()
+            self.eat(RPAREN)
+            return result
+```
+
+这个问题应该算是BNF设计的问题，因为代码和BNF是完全对应的，从BNF中就能看到只是保证喂了足够
+多的右括号而已。
+
+提供一种代码修改方案如下：
+
+```c
+self.paren_pairnum = 0
+...
+elif self.current_token.type == LPAREN:
+            self.eat(LPAREN)
+            self.paren_pairnum += 1
+            result = self.expr()
+            self.eat(RPAREN)
+            self.paren_pairnum -= 1
+            if self.paren_pairnum == 0 and self.current_token.type == RPAREN:
+                self.error()
+            return result
+```
+
+虽然修改代码能够解决，但是我觉得这不是一种state-of-art的解决方式，还是要从BNF的设计上去考察。
+

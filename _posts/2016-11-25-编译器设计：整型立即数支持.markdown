@@ -3,8 +3,8 @@ layout: post
 title:  "编译器设计：整型立即数支持"
 author: Kai Qiu
 date:   2016-11-25 21:22:37 +0800
-categories: 编译器设计
-tags: 立即数 python
+categories: 读书随笔
+tags: 立即数 python 编译器设计
 excerpt: 上一篇文章(naive compiler)中实现了一个文本打印工具（厚脸皮地叫compiler，^_^），这次加入立即数支持，可以return任意整型值（数据类型目前还不支持）。
 ---
 
