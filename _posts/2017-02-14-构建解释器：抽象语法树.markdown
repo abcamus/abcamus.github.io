@@ -12,7 +12,7 @@ excerpt: 第七部分：抽象语法树实现
 {:toc}
 
 
-第七部分开始引入了抽象语法树，开始考虑到代码的耦合性。剥离了lexer,parser和interpreter。值得一提的是，上一篇随笔提到的右括号匹配问题在这里解决了，也是通过添加额外代码解决的。
+第七部分开始引入了抽象语法树，开始考虑到代码的耦合性。剥离了lexer,parser和interpreter。这样带来一个非常重大的好处就是可以单独对每个类进行测试或者重用。值得一提的是，上一篇随笔提到的右括号匹配问题在这里解决了，也是通过添加额外代码解决的。
 
 ```python
 def parse(self):
@@ -28,6 +28,8 @@ def parse(self):
 ### 类的包含关系
 
 interpreter->parser->lexer
+
+lexer根据text产生token，parser使用token产生tree，interpreter使用tree产生result。
 
 ### 练习题
 
