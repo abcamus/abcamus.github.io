@@ -4,7 +4,7 @@ title:  "构建解释器：pascal语法支持"
 author: Kai Qiu
 date:   2017-02-15 16:07:37 +0800
 categories: 读书随笔
-tags: 解释器
+tags: 解释器 pascal
 excerpt: 超越计算器，支持pascal语法
 ---
 
@@ -41,14 +41,15 @@ excerpt: 超越计算器，支持pascal语法
 
 ### 练习
 
-- 关键字的大小写敏感问题
+#### 1. 关键字的大小写敏感问题
+
 在读取id的时候，根据ID的大写字符串去关键字中搜索，如果有则返回大写关键字，也就是说不管程序中的关键字是大写还是小写，内部始终是用的大写的方式。
 
 ```python
 token = RESERVED_KEYWORDS.get(result.upper(), Token(ID, result))
 ```
 
-- 把'/'转换成关键字div
+#### 2. 把'/'转换成关键字div
 
 ```python
 RESERVED_KEYWORDS = {
@@ -62,7 +63,7 @@ RESERVED_KEYWORDS = {
 	#   return Token(DIV, '/')
 ```
 
-- 修改解释器，使得支持下划线开始的名字命名
+#### 3. 修改解释器，使得支持下划线开始的名字命名
 
 ```python
 def _id(self):
