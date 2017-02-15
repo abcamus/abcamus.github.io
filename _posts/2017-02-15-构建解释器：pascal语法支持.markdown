@@ -25,7 +25,7 @@ excerpt: 超越计算器，支持pascal语法
 
 6. $ variable\to ID $
 
-7. $ empty: $
+7. $ empty\to $
 
 8. $ expr\to term\ ((PLUS \| MINUS)\ TERM)* $
 
