@@ -1,0 +1,87 @@
+---
+layout: post
+title:  "构建解释器：抽象语法树"
+author: Kai Qiu
+date:   2017-02-14 21:16:37 +0800
+categories: 读书随笔
+tags: 解释器 抽象语法树
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+
+第七部分开始引入了抽象语法树，开始考虑到代码的耦合性。剥离了lexer，
+parser和interpreter。值得一提的是，上一篇随笔提到的右括号匹配问题在这
+里解决了，也是通过添加额外代码解决的。
+
+```python
+def parse(self):
+	node = self.expr()
+	if self.current_token.type != EOF:
+		self.error()
+```
+
+这里通过增加parse函数，隔离了expr递归时候的耦合，然后再检查expr结束时
+是不是还有token，如果右括号多于左括号，那么在检测到第一个多于的右括号
+的时候，expr递归就会结束，导致后面的表达式无法匹配。如果没有语法错误，
+那么parse函数就返回一棵抽象语法树的根节点。
+
+通过AST这个中间结构就把parser和interpreter给隔离了，可以独立的去设计语
+法分析程序和解释程序。
+
+### 类的包含关系
+
+interpreter->parser->lexer
+
+### 练习题
+
+- 返回Reverse Polish Notation
+就是打印就是后序遍历的过程，这个很简单，因为spi.py中的interpreter就是
+后序遍历的。只要添加打印就可以了。
+
+1. 在visit_BinOp返回前打印运算符
+2. 在visit_Num返回前打印整型值
+
+```python
+   def visit_BinOp(self, node):
+        if node.op.type == PLUS:
+            value = self.visit(node.left) + self.visit(node.right)
+        elif node.op.type == MINUS:
+            value = self.visit(node.left) - self.visit(node.right)
+        elif node.op.type == MUL:
+            value = self.visit(node.left) * self.visit(node.right)
+        elif node.op.type == DIV:
+            value = self.visit(node.left) / self.visit(node.right)
+        print node.op.value,
+        return value
+
+    def visit_Num(self, node):
+        print node.value,
+        return node.value
+```
+
+- 返回Lisp Style Notation
+Lisp Style Notation等效于前序遍历，怎么实现呢？ 只要在递归开始前打印运
+算符就可以了。
+
+```python
+    def visit_BinOp(self, node):
+        print '(', node.op.value,
+        if node.op.type == PLUS:
+            value = self.visit(node.left) + self.visit(node.right)
+        elif node.op.type == MINUS:
+            value = self.visit(node.left) - self.visit(node.right)
+        elif node.op.type == MUL:
+            value = self.visit(node.left) * self.visit(node.right)
+        elif node.op.type == DIV:
+            value = self.visit(node.left) / self.visit(node.right)
+        #print node.op.value,
+        print ')',
+        return value    
+
+    def visit_Num(self, node):
+        print node.value,
+        return node.value
+```
