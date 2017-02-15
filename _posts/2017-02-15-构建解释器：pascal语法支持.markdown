@@ -1,0 +1,78 @@
+---
+layout: post
+title:  "构建解释器：pascal语法支持"
+author: Kai Qiu
+date:   2017-02-15 16:07:37 +0800
+categories: 读书随笔
+tags: 解释器
+excerpt: 超越计算器，支持pascal语法
+---
+
+* menu
+{:toc}
+
+第九部分开始了对语言特性的支持，根据语言定义BNF：
+
+1. $ program\to compound\\_statement\ DOT $
+
+2. $ compound\\_statement\to BEGIN\ statement\\_list\ END $
+
+3. $ statement\\_list\to statement \| statement\ SEMI\ statement\\_list $
+
+4. $ statement\to compound\\_statement \| assignment\\_statement \| empty $
+
+5. $ assignment\\_statement\to variable\ ASSIGN\ expr $
+
+6. $ variable\to ID $
+
+7. $ empty: $
+
+8. $ expr\to term\ ((PLUS \| MINUS)\ TERM)* $
+
+9. $ term\to factor\ ((MUL \| DIV)\ factor)* $
+
+10. $ factor\to PLUS\ factor \| MINUS\ factor \| INTEGER \| LPAREN\ expr\ RPAREN\| variable $
+
+### 知识点梳理
+
+- 计算机程序语言的一些基本知识，譬如什么是表达式（expression），什么是语句（statement）。
+- 符号表。由于引入了变量，如何再次访问到这些变量呢？把他们放到符号表中，这里只有一个全局符号表`GLOBAL_SCOPE`
+- 新的grammar规则设计的理论知识其实就是LL(1)。[什么是LL(1)?](/2016/11/22/编译器设计-文法与LL(1))
+
+### 练习
+
+- 关键字的大小写敏感问题
+在读取id的时候，根据ID的大写字符串去关键字中搜索，如果有则返回大写关键字，也就是说不管程序中的关键字是大写还是小写，内部始终是用的大写的方式。
+
+```python
+token = RESERVED_KEYWORDS.get(result.upper(), Token(ID, result))
+```
+
+- 把'/'转换成关键字div
+
+```python
+RESERVED_KEYWORDS = {
+    'DIV': Token('DIV', 'DIV'),        
+    'BEGIN': Token('BEGIN', 'BEGIN'),
+    'END': Token('END', 'END'),
+}
+
+#if self.current_char == '/':
+    #   self.advance()
+	#   return Token(DIV, '/')
+```
+
+- 修改解释器，使得支持下划线开始的名字命名
+
+```python
+def _id(self):
+	...
+	while self.current_char is not None and (self.current_char.isalnum() or self.current_char == '_'):
+	...
+	
+def get_next_token(self):
+	...
+	if self.current_char.isalpha() or self.current_char == '_':
+		return self._id()
+	...
+```
