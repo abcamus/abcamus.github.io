@@ -32,8 +32,7 @@ interpreter->parser->lexer
 ### 练习题
 
 - 返回Reverse Polish Notation
-就是打印就是后序遍历的过程，这个很简单，因为spi.py中的interpreter就是
-后序遍历的。只要添加打印就可以了。
+就是打印就是后序遍历的过程，这个很简单，因为spi.py中的interpreter就是后序遍历的。只要添加打印就可以了。
 
 
 1. 在visit_BinOp返回前打印运算符
@@ -58,8 +57,9 @@ interpreter->parser->lexer
 ```
 
 - 返回Lisp Style Notation
-Lisp Style Notation等效于前序遍历，怎么实现呢？ 只要在递归开始前打印运
-算符就可以了。
+
+Lisp Style Notation等效于前序遍历，怎么实现呢？ 只要在递归开始前打印运算符就可以了。
+
 
 ```python
     def visit_BinOp(self, node):
