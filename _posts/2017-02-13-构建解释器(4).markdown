@@ -15,11 +15,11 @@ excerpt: 这是《Let's build a simple interpreter》中第四部分的练习
 
 ### BNF
 
-$$ expr\to term((PLUS/MINUS)term)* $$
+$ expr\to term((PLUS/MINUS)term)* $
 
-$$ term\to factor((MUL/DIV)factor)* $$
+$ term\to factor((MUL/DIV)factor)* $
 
-$$ factor\to INTERGER $$
+$ factor\to INTERGER $
 
 ### BNF到代码实现
 
