@@ -22,7 +22,6 @@ type: page
 * [豆瓣]()
 
 ## 关于本站
-本站参考自gaohaoyang同学制作的模板，链接在页脚上。
 
 ## Comments
 
