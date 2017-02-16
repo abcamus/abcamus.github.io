@@ -143,6 +143,18 @@
                         font-size: 14px;
                     }
                 }
+
+				.qq-class {
+					font-weight: normal;
+                    a {
+                        padding: 0 3px;
+                        border-radius: 5px;
+                        &:hover {
+                            background-color: #f0e7ce;
+                        }
+                    }
+				}
+
                 .tags-cloud {
                     font-weight: normal;
                     a {
