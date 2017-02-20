@@ -1,0 +1,115 @@
+---
+layout: post
+title:  "构建解释器：符号表支持"
+author: Kai Qiu
+date:   2017-02-20 13:26:37 +0800
+categories: 读书随笔
+tags: 解释器 符号表 python pascal
+excerpt: 《Let's Build a Simple Interpreter》第11章读书随笔
+---
+
+* menu
+{:toc}
+
+本章实现了独立的符号表，实现了赋值语句语法检查。
+
+### 谈谈first集和follow集
+
+几乎任何一本关于编译器设计的书在讲到语法分析的时候都会介绍first集合和follow集合，故名思议，first集合就是通过向前读取一个标识符，判断这个标识符是否且仅是某一产生式右侧符号的第一个标识符，如果是的话，就可以推断要应用该条规则进行推导。follow集指当前标识符是否是某一条规则的后面一个符号，对于LL(1)来讲，每条规则都能通过first集合进行推导，除了epsilon规则。
+
+>换言之[推论]：不能通过first集推导的就是epsilon规则。
+
+对于epsilon规则，应用follow集合来确认接下来要应用哪个产生式。
+
+这是理论上的说法，那末要如何转换成代码呢？
+
+- first集合
+
+这个很直白，就是条件判断语句（例如if/else）。假设first集合为$first{alpha} = {a, b}$，那么可以这么实现：
+
+```python
+if current_token == a:
+	match production_a
+elif current_token == b:
+	match production_b
+else:
+	...
+```
+
+- follow集合
+
+注意上面的first集合中的else以及关于epsilon规则的推论。
+
+很明显，如果执行到了else，则说明当前字符应当去follow集中匹配来确定应用哪一条产生式。
+
+譬如11章的代码：
+
+```python
+def statement_list(self):
+    """
+    statement_list : statement
+    | statement SEMI statement_list
+    """
+    node = self.statement()
+
+    results = [node]
+
+	// 这个SEMI就是follow集中的元素
+    while self.current_token.type == SEMI:
+		self.eat(SEMI)
+		results.append(self.statement())
+
+    return results
+
+def statement(self):
+    """
+    statement : compound_statement
+    | assignment_statement
+    | empty
+    """
+    if self.current_token.type == BEGIN:
+		node = self.compound_statement()
+    elif self.current_token.type == ID:
+		node = self.assignment_statement()
+    else:
+		node = self.empty()
+    return node
+```
+
+- 归纳总结
+
+总结下来first集和follow集在代码上的实现其实也很简单，首先通过条件判断遍历first集进行推导，当遇到epsilon（上面的else）的时候，再通过条件判断遍历follow集（例如这里只有SEMI）进行推导。一种实现形式就是本章的代码。
+
+### 本章内容总结
+
+本章添加了符号表，其实结构上和解释器遍历抽象语法树的过程是一样的，只不过通过字典保留了符号信息，并且进行了一定的语法检查。
+
+相关的入口是
+
+```python
+symtab_builder = SymbolTableBuilder()
+symtab_builder.visit(tree)
+```
+
+在遍历的时候对遇到的语句进行对应的符号表操作，例如
+
+```python
+# 遇到变量声明语句的时候，在符号表中添加对应的symbol
+def visit_VarDecl(self, node):
+	type_name = node.type_node.value
+	type_symbol = self.symtab.lookup(type_name)
+	var_name = node.var_node.value
+	var_symbol = VarSymbol(var_name, type_symbol)
+	self.symtab.define(var_symbol)
+	
+# 遇到赋值语句的时候，检查左侧变量是否已经声明
+def visit_Assign(self, node):
+	var_name = node.left.value
+	var_symbol = self.symtab.lookup(var_name)
+	if var_symbol is None:
+		raise NameError(repr(var_name))
+
+	self.visit(node.right)
+```
+
+除了符号表相关的其他部分就是前面几个章节的内容了。
