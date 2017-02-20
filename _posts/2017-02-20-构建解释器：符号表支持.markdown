@@ -25,7 +25,7 @@ excerpt: 《Let's Build a Simple Interpreter》第11章读书随笔，通过符�
 
 - first集合
 
-这个很直白，就是条件判断语句（例如if/else）。假设first集合为$first{alpha} = {a, b}$，那么可以这么实现：
+这个很直白，就是条件判断语句（例如if/else）。假设first集合为$first\{alpha\} = \{a, b\}$，那么可以这么实现：
 
 ```python
 if current_token == a:
