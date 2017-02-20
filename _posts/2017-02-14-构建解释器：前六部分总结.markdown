@@ -1,11 +1,11 @@
 ---
 layout: post
-title:  "构建解释器：1~6部分总结"
+title:  "构建解释器：1-6部分总结"
 author: Kai Qiu
 date:   2017-02-14 14:11:37 +0800
 categories: 读书随笔
 tags: 解释器
-excerpt: 总结1~6 part的内容
+excerpt: 总结1到6章节的内容
 ---
 
 * menu
