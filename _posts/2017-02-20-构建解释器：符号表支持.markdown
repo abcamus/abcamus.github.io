@@ -5,7 +5,7 @@ author: Kai Qiu
 date:   2017-02-20 13:26:37 +0800
 categories: 读书随笔
 tags: 解释器 符号表 python pascal
-excerpt: 《Let's Build a Simple Interpreter》第11章读书随笔
+excerpt: 《Let's Build a Simple Interpreter》第11章读书随笔，通过符号表实现语法检查。
 ---
 
 * menu
