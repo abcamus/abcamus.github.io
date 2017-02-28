@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Linux内核：串口驱动"
+title:  "Linux内核移植：串口驱动"
 author: Kai Qiu
 date:   2017-02-28 18:12:37 +0800
 categories: 嵌入式开发
