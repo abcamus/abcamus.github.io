@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Linux内核移植"
+title: "Linux内核移植：启动"
 date: 2017-01-08
 categories: 嵌入式开发
 tags: Linux 内核移植 exynos4412
