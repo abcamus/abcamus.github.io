@@ -1,0 +1,27 @@
+---
+layout: post
+title:  "Exynos4412: eMMC启动"
+author: Kai Qiu
+date:   2017-02-28 21:22:37 +0800
+categories: 嵌入式开发
+tags: eMMC exynos4412
+excerpt: 
+---
+
+* menu
+{:toc}
+
+从建立博客到现在陆陆续续有好几个童鞋来找我要代码，其中有个问题经常提到：支不支持从emmc启动。但是我移植uboot和kernel只是为了探究我自己感兴趣的东东，所以没有去关注emmc启动的问题。最近正好告一段落，来看看eMMC boot的问题吧。
+
+### uboot eMMC驱动
+
+首先我去检查了uboot的代码，发现在2015.04版本中是通过一个统一的mmc驱动框架来管理mmc设备的，也就是说sd mmc和emmc的操作方式是一样的。比如有以下这些命令可供使用：
+
+```shell
+host > mmc info
+host > mmc dev [dev] [part]
+host > mmc list
+host > mmc partconf
+```
+
+设备树中默认是配置了8比特模式，但是不能工作，暂时先改成4比特就可以正常读写了，gpio的驱动可能不太兼容。
