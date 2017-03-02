@@ -1,0 +1,144 @@
+---
+layout: post
+title:  "Linux内核移植：eMMC启动（插曲）"
+author: Kai Qiu
+date:   2017-02-28 21:22:37 +0800
+categories: 嵌入式开发
+tags: eMMC exynos4412
+excerpt: 从建立博客到现在陆陆续续有好几个童鞋来找我要代码，其中有个问题经常提到：支不支持从emmc启动。但是我移植uboot和kernel只是为了探究我自己感兴趣的东东，所以没有去关注emmc启动的问题。最近正好工作告一段落，就来看看eMMC boot的问题吧。
+---
+
+* menu
+{:toc}
+
+> 时间，就象海棉里的水，只要愿挤，总还是有的。 —— 鲁迅
+
+从建立博客到现在陆陆续续有好几个童鞋来找我要代码，其中有个问题经常提到：支不支持从emmc启动。但是我移植uboot和kernel只是为了探究我自己感兴趣的东东，所以没有去关注emmc启动的问题。最近工作正好告一段落，就来看看eMMC boot的问题吧。
+
+### uboot eMMC驱动框架简介
+
+检查了uboot的代码，发现在2015.04版本中是通过一个统一的mmc驱动框架来管理mmc设备的，也就是说sd mmc和emmc的操作方式是一样的。比如有以下这些命令可供使用：
+
+```shell
+host > mmc info
+host > mmc dev [dev] [part]
+host > mmc list
+host > mmc partconf
+```
+
+> 设备树中默认是配置了8比特模式，但是由于pinmux和gpio的驱动还没有兼容，8比特模式还不能工作，暂时先改成4比特就可以正常读写了。
+
+看看设备信息：
+
+```shell
+host > mmc list
+SAMSUNG SDHCI: 0 (SD)
+EXYNOS DWMMC: 1 (eMMC)
+host > 
+host > mmc dev 1
+switch to partitions #0, OK
+mmc1(part 0) is current device
+host > 
+host > mmcinfo
+Device: EXYNOS DWMMC
+Manufacturer ID: 15
+OEM: 100
+Name: 4YMD3 
+Tran Speed: 52000000
+Rd Block Len: 512
+MMC version 5.0
+High Capacity: Yes
+Capacity: 3.6 GiB
+Bus Width: 4-bit
+Erase Group Size: 512 KiB
+HC WP Group Size: 8 MiB
+User Capacity: 3.6 GiB WRREL
+Boot Capacity: 4 MiB ENH
+RPMB Capacity: 512 KiB ENH
+host >
+```
+
+### eMMC硬件分区介绍
+
+eMMC的每一个硬件分区都是独立编址的，所以在访问前要先指定访问哪一个分区，具体访问哪一个分区由Extended CSD寄存器决定的。
+
+![partition_access.png](https://ooo.0o0.ooo/2017/03/02/58b808f11fa86.png)
+
+每个字段的说明如下：
+
+![partition_bits.png](https://ooo.0o0.ooo/2017/03/02/58b80bf27dfc2.png)
+
+### 通过uboot命令把启动镜像烧写到eMMC中
+
+#### 1. 利用sd boot进到uboot界面，查看mmc设备信息。
+
+```shell
+host > mmc list
+SAMSUNG SDHCI: 0 (SD)
+EXYNOS DWMMC: 1
+```
+
+#### 2. 通过partconf命令配置分区。
+
+命令介绍如下：
+
+```shell
+host > mmc partconf
+mmc partconf dev boot_ack boot_partition partition_access
+ - Change the bits of the PARTITION_CONFIG field of the specified device
+host >
+host > mmc partconf 1 1 1 1
+```
+
+上面的partconf命令意思是：指定启动分区boot1为启动分区，当前访问的分区也是boot1分区（参考Extended CSD寄存器说明）。
+
+#### 3. 烧写镜像到eMMC
+
+```shell
+host > fatls mmc 0
+   283396   image.bin 
+  5935832   uimage 
+    37540   exynos4412-landrover.dtb
+```
+
+镜像说明：image.bin是uboot镜像，uimage是内核镜像，exynos4412-landrover.dtb是设备树。
+
+```shell
+host > fatload mmc 0 40000000 image.bin
+host > mmc write 40000000 0 400
+```
+
+然后OM选择eMMC启动，重启就可以看到uboot界面了，如下：
+
+```shell
+landrover > OKhello.
+copy BL2 ends.
+
+
+U-Boot 2015.04-g02bb89f-dirty (Mar 02 2017 - 16:56:26) for LANDROVER
+
+CPU:    Exynos4412@1000MHz
+Model: landrover based on Exynos4412
+DRAM:  1 GiB
+WARNING: Caches not enabled
+Pre-reloc malloc() used 0xdc bytes (0 KB)
+Now running in RAM - U-Boot at: 7fe80000
+MMC:   found 1 nodes with compatibility...
+Found 1 mmc nodes
+mmc4 clk source = 0x66666
+mmc4 mask = 0x1011111
+emmc dev index = 4, sclk = -1, freq = 400000000, div = 0
+found 4 nodes with compatibility...
+sd mmc count = 1.
+probing host[0].
+_gpio_request_by_name_nodev: fdtdec_parse_phandle_with_args failed
+_gpio_request_by_name_nodev: Node 'sdhci@12530000', property 'pwr-gpios', failed to request GPIO index 0: -2
+EXYNOS DWMMC: 0, SAMSUNG SDHCI: 1
+*** Warning - bad CRC, using default environment
+
+initr_env:450  load_addr = 0x40007000.
+### main_loop entered: bootdelay=5
+
+### main_loop: bootcmd="if mmc rescan; then echo SD/MMC found on device ${mmcdev};if run loadbootenv; then echo Loaded environment fro"
+Hit any key to stop autoboot:  0
+```
