@@ -91,3 +91,9 @@ urlpatterns = [
 ```shell
 mysite > python manage.py runserver
 ```
+
+### 7. 访问页面
+
+显示如下：
+
+![django测试.png](https://ooo.0o0.ooo/2017/03/03/58b91affba4ae.png)
