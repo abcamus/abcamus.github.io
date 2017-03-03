@@ -1,0 +1,93 @@
+---
+layout: post
+title:  "Django搭建网站：安装和测试"
+author: Kai Qiu
+date:   2017-03-03 15:04:37 +0800
+categories: web应用
+tags: python django
+excerpt: 利用django搭建网站
+---
+
+* menu
+{:toc}
+
+> 社会上崇敬名人，于是以为名人的话就是名言，却忘记了他所以得名是那一种学问和事业。 —— 鲁迅
+
+有很多知名的网站是利用python搭建的，例如豆瓣，知乎，YouTube。本文对Django进行初步常识，看看如何利用这个现成的框架来快速搭建一个网站。
+
+### 1. 安装Django
+
+在Ubuntu 16.04下，直接
+
+```shell
+host > pip install Django
+```
+
+就安装好了，例如我的是Django-1.10.6。
+
+### 2. 初始化站点
+
+```shell
+host > django-admin startproject mysite
+```
+
+### 3. 初始化应用
+
+```shell
+host > cd mysite/
+mysite > python manage.py startapp blog
+```
+
+### 4. 告诉站点怎么找到应用
+
+```shell
+mysite > vi mysite/setting.py
+```
+
+把应用加到`INSTALLED_APPS`列表中。
+
+```python
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'blog',
+]
+```
+
+### 5. 创建应用视图
+
+修改`blog/views.py`
+
+```python
+# Create your views here.
+from django.http import HttpResponse
+def index(req):
+    return HttpResponse('<h1>Hello, World!</h1>')
+```
+
+### 6. 配置url
+
+```shell
+mysite > vi mysite/urls.py
+```
+
+添加blog网址
+
+```python
+from blog import views
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^blog/index/$', views.index),
+]
+```
+
+### 7. 启动服务
+
+```shell
+mysite > python manage.py runserver
+```
