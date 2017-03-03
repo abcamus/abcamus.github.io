@@ -1,0 +1,80 @@
+---
+layout: post
+title:  "再论设备树：Linux设备树"
+author: Kai Qiu
+date:   2017-03-03 21:22:37 +0800
+categories: 嵌入式开发
+tags: 设备树
+excerpt: 介绍Linux设备树表示
+---
+
+* menu
+{:toc}
+
+> 惟有对自己卓越的才能和独特的价值有着坚定不移之确信的人才能称之为“骄傲”。任何想假装高傲的人不一定就能骄傲，他多半会像其他人一样，很快地丢弃掉这个假装的个性。 —— 叔本华
+
+之前在移植uboot和Linux内核的时候已经探讨过一部分device tree的内容了，特别是介绍了[uboot中设备树结构在内存中的组织形式]()。但是一直都没有较为系统的总结一下Linux设备树的内容。希望这篇文章对Linux中的设备树做一个较为详尽的阐述吧。
+
+## 一、设备树总览
+
+首先，设备树是一种数据结构，他用来描述一个系统的硬件组织，比如说一个BBB开发板是由哪些模块组成的。既然如此，如何描述一个组织呢？分为两部分。
+
+1. 各个组件的层次关系。
+2. 每个组件的具体信息。
+
+这是通过常理就能推断出来的。
+
+然后根据这两条常识，结合设备树知识可以知道，dts文件中的每个节点代表一个组件，整个设备树的层级关系也就是各个组件的层次关系。
+
+## 二、各个组件的描述
+
+每个组件的信息通过属性property来描述，每个属性都有对应的值value。
+
+### 2.1 属性枚举
+
+- compatible
+  兼容性描述，驱动根据这个匹配设备。
+
+#### 2.1.1 地址相关属性
+
+- reg
+  设备寄存器地址描述，形式为<address1 length1 [address2 length2] ... >，可以看到每个元组代表一个寄存器范围。这也是我们希望看到的。
+  
+- #address-cells
+  表示用几个32bit单元来表示地址。如果是2，则第一个表示片选，第二个表示相对于片选基址的偏移。
+
+- #size-cells
+  为0或1。0表示没有地址范围，即只有一个地址；1表示用一个32bit数值表示range。
+
+- ranges
+  explicitly show 总线设备的地址映射，比如说bus挂了一个i2c控制器，bus节点通过range属性告诉cpu访问i2c控制器的地址。<child\_address parent\_address size\_in\_child\_addr\_space>。显然只有存在地址映射的设备才需要ranges属性。像spi、i2c设备就不需要ranges属性。
+
+#### 2.1.2 中断相关属性
+
+- interrupt-controller
+  一个空属性，用来表示该设备接受中断信号。
+  
+- #interrupt-cells
+  中断控制器的属性，表示每个interrupt specifier中有多少个单元
+  
+- interrupt-parent
+  表示连接的中断控制器
+
+- interrupts
+  表示各个interrupt specifier，每个中断输出信号对应一个interrupt specifier。中断线编号，中断触发信号是高有效or低有效or边沿触发or电平触发的信息都编码在interrupt specifier中。
+  
+#### 2.1.3 设备特有属性
+
+比如某些厂商自己定义的兼容属性等，除了不能和已有的名字冲突外，还都要给出相应的binding文档，指出特定的兼容属性是什么意思，需要定义哪些属性，可能需要哪些子节点，代表什么设备。
+
+## 三、特殊节点
+
+### 3.1 aliases节点
+	
+给节点添加别名，相当于加了一个string属性，保存对应节点的路径。操作系统就可以通过这个属性来访问对应设备。
+
+### 3.2 chosen节点
+
+不代表实际的设备，用于firmware和OS之间传递数据。
+
+[参考文章：Device_Tree_Usage](http://elinux.org/Device_Tree_Usage)
