@@ -15,7 +15,7 @@ excerpt: exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy�
 
 谨以这句格言送给自己和所有在路上的朋友。
 
-exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy需要gpio来控制提供bus，sdmmc的所有管脚都和gpio复用。这篇文章就介绍一下Linux 4.1版本内核是如何配置gpio的。
+exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy需要gpio来控制提供vbus，sdmmc的所有管脚都和gpio复用。这篇文章就介绍一下Linux 4.1版本内核是如何配置gpio的。
 
 ## 一 设备树和平台编码的配合
 
