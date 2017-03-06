@@ -5,7 +5,7 @@ author: Kai Qiu
 date:   2017-03-06 13:44:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 usb驱动
-excerpt: 摘要
+excerpt: 移植Exynos4412 usb驱动。
 ---
 
 * menu
