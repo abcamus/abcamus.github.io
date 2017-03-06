@@ -91,7 +91,7 @@ Units: cylinders of 64 * 512 = 32768 bytes
 
 分区完之后写个文件，然后再去笔记本上打开，发现正常。
 
-> 重新拔插以下tf卡，在执行`fdisk -l`的时候不能识别，报I/O error，而且使能了sdmmc2的INSERT和REMOVAL中断，却没有抓到中断log。
+> 重新拔插一下tf卡，在执行`fdisk -l`的时候不能识别，报I/O error，而且使能了sdmmc2的INSERT和REMOVAL中断，却没有抓到中断log。
 
 ## 二 总结
 
