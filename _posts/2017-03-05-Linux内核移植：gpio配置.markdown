@@ -146,8 +146,8 @@ static const struct samsung_pin_bank_data exynos4x12_pin_banks0[] __initconst = 
   然后mount debugfs，就可以查看管脚映射了。
   
   ```shell
-  host > mount -t debugfs home/debugfs
-  host > ls home/debugfs/gpio
+  host # mount -t debugfs home/debugfs
+  host # ls home/debugfs/gpio
 106e0000.pinctrl  11400000.pinctrl  pinctrl-devices   pinctrl-maps
 11000000.pinctrl  3860000.pinctrl   pinctrl-handles
   ```
@@ -160,7 +160,7 @@ static const struct samsung_pin_bank_data exynos4x12_pin_banks0[] __initconst = 
   然后就可以在/sys/class/gpio/目录下看到相关信息了。
   
   ```shell
-  host > ls /sys/class/gpio
+  host # ls /sys/class/gpio
   export       gpiochip14   gpiochip188  gpiochip244  gpiochip36   gpiochip83
 gpiochip0    gpiochip143  gpiochip196  gpiochip251  gpiochip40   gpiochip90
 gpiochip104  gpiochip148  gpiochip204  gpiochip259  gpiochip48   gpiochip97
@@ -174,15 +174,15 @@ gpiochip136  gpiochip180  gpiochip236  gpiochip32   gpiochip8
   现在我们想要点个灯看一下效果，可以这样操作，查看itop Exynos4412硬件原理图可以知道，GPL2[0]对应LED2。GPL[2]在内核中对应gpiochip120(可以通过搜索字符串gpl2或者直接查看源代码知道)。
   
   ```shell
-  host > echo 120 > export
-  host > echo "out" > gpio120/direction 
-  host > echo 1 > gpio120/value
+  host # echo 120 > export
+  host # echo "out" > gpio120/direction 
+  host # echo 1 > gpio120/value
   ```
   
   可以看到LED2亮了。可以通过
   
   ```shell
-  host > echo 120 > unexport
+  host # echo 120 > unexport
   ```
   
   取消映射。
