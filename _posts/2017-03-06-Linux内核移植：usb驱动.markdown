@@ -1,0 +1,160 @@
+---
+layout: post
+title:  "Linux内核移植：usb驱动"
+author: Kai Qiu
+date:   2017-03-06 13:44:37 +0800
+categories: 嵌入式开发
+tags: Linux内核 usb驱动
+excerpt: 摘要
+---
+
+* menu
+{:toc}
+
+> 初期教育应是一种娱乐，这样才更容易发现一个人天生的爱好。 —— 柏拉图
+
+深深赞同柏拉图的这个观点，人是有天性的，教育无非就是如何引导天性朝有利的方向发展。
+
+继续Linux内核移植系列，今天介绍如何移植Exynos4412 usb驱动，采用的平台依旧是itop Exynos4412精英板。协议的知识就不介绍了，直接来移植一个可以使用的usb host驱动。
+
+## 一 硬件配置
+
+### 1.1 外部管脚
+
+首先usb host必须有vbus，通过vbus给端口上的设备供电，所以the very first应该是去检查vbus的供电电路。通过查看原理图，发现vbus是通过gpio(ETC6)控制的。由于ETC6和其他gpio管脚的映射方式不太一样，这里就不通过gpio驱动来控制了，直接在usb驱动中添加以下语句使能vbus。
+
+```c
+	//exynos_setup_vbus_gpio(&pdev->dev);
+
+	void __iomem *etc6_addr = ioremap(0x11000228, 2);
+	unsigned int etc6pud, etc6drv;
+	if (!etc6_addr)
+		pr_info("Can't Map ETC6.\n");
+	else {
+		etc6pud = readl(etc6_addr);
+		etc6drv = readl(etc6_addr+4);
+		pr_info("ETC6PUD = 0x%x\tETC6DRV = 0x%x.\n", etc6pud, etc6drv);
+		writel(etc6pud | (0x3<<12), etc6_addr);
+		writel(etc6drv | (0x1<<12), etc6_addr+4);
+		pr_info("Configed ETC6PUD = 0x%x, ETC6DRV = 0x%x.\n", readl(etc6_addr), readl(etc6_addr+4));
+	}
+```
+
+内核起来后，就可以测量到vbus的5V电压了。
+
+其次是去检查时钟管脚，这里用的现成的就可以，设备树中默认已经配置好了。
+
+### 1.2 hub
+
+这里用的是usb3503芯片，也去查看原理图，找到reset/connect/int脚，都配置到设备树中。
+
+## 二 设备树和内核配置
+
+### 2.1 设备树配置
+
+配置控制器，phy和hub，代码如下：
+
+```shell
+exynos-usbphy@125B0000 {
+		status = "okay";	
+	};
+	
+	ehci: ehci@12580000 {
+		//samsung,vbus-gpio = <&gpx3 5 1>;
+		status = "okay";	
+		port@0 {
+			status = "okay";
+		};
+		port@1 {
+			status = "okay";
+		};
+		port@2 {
+			status = "okay";	
+		};
+	};
+
+	usb3503 {
+		compatible = "smsc,usb3503";	
+		reg = <0x08 0x4>;
+		connect-gpios = <&gpm3 3 GPIO_ACTIVE_LOW>;
+		intn-gpios = <&gpx2 3 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpm2 4 GPIO_ACTIVE_LOW>;
+		initial-mode = <1>;
+	};
+```
+
+### 2.2 内核配置
+
+- usb3503驱动配置
+
+![usb3503.png](https://ooo.0o0.ooo/2017/03/06/58bd01467cbdb.png)
+
+- usb控制器驱动配置
+
+![exynos_ehci.png](https://ooo.0o0.ooo/2017/03/06/58bd01dd65b76.png)
+
+开启usb storage驱动，后面我们用u盘进行测试。
+
+如果要生成设备文件节点的话，还需要添加scsi支持。
+
+![scsi.png](https://ooo.0o0.ooo/2017/03/06/58bd0313b98c6.png)
+
+## 三 测试
+
+启动log如下：
+
+```shell
+[    1.201505] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    1.207715] ehci-exynos: EHCI EXYNOS driver
+[    1.211970] ETC6PUD = 0xc000 ETC6DRV = 0x0.
+[    1.216040] Configed ETC6PUD = 0xf000, ETC6DRV = 0x1000.
+[    1.221339] usb phy_number = 0.
+[    1.224474] usb phy_number = 1.
+[    1.227585] usb phy_number = 2.
+[    1.231196] exynos-ehci 12580000.ehci: EHCI Host Controller
+[    1.236287] exynos-ehci 12580000.ehci: new USB bus registered, assigned bus number 1
+[    1.244271] exynos-ehci 12580000.ehci: irq 45, io mem 0x12580000
+[    1.257078] exynos-ehci 12580000.ehci: USB 2.0 started, EHCI 1.00
+[    1.262439] hub 1-0:1.0: USB hub found
+[    1.265482] hub 1-0:1.0: 3 ports detected
+[    1.270181] usbcore: registered new interface driver usb-storage
+[    1.285771] usb3503 8.usb3503: switched to HUB mode
+[    1.289186] usb3503 8.usb3503: usb3503_probe: probed in hub mode
+```
+
+插上读卡器试试：
+
+```shell
+[root@osee ]#[ 1205.437072] usb 1-3.3: new high-speed USB device number 7 using exynos-ehci
+[ 1205.551613] usb-storage 1-3.3:1.0: USB Mass Storage device detected
+[ 1205.556746] scsi host0: usb-storage 1-3.3:1.0
+[ 1206.558784] scsi 0:0:0:0: Direct-Access     TS-RDF5  SD  Transcend    TS37 PQ: 0 ANSI: 6
+[ 1206.566175] sd 0:0:0:0: Attached scsi generic sg0 type 0
+[ 1206.923615] sd 0:0:0:0: [sda] 30881792 512-byte logical blocks: (15.8 GB/14.7 GiB)
+[ 1206.930982] sd 0:0:0:0: [sda] Write Protect is off
+[ 1206.935733] sd 0:0:0:0: [sda] Write cache: disabled, read cache: enabled, doesn't support DPO or FUA
+[ 1206.950255]  sda: sda1
+[ 1206.955367] sd 0:0:0:0: [sda] Attached SCSI removable disk
+```
+
+挂载访问（如果没有发现设备文件，执行mdev -s看看）：
+
+```shell
+[root@osee ]#mdev -s
+[root@osee ]#ls /dev/sda
+sda   sda1
+[root@osee ]#ls /dev/sda1 
+/dev/sda1
+[root@osee ]#ls home/
+[root@osee ]#mkdir home/usb
+[root@osee ]#
+[root@osee ]#mount /dev/sda1 home/usb/
+[root@osee ]#ls home/usb/
+DCIM  FFDB
+[root@osee ]#ls home/usb/DCIM/
+100_FUJI
+[root@osee ]#df -h
+Filesystem                Size      Used Available Use% Mounted on
+tmpfs                   504.9M         0    504.9M   0% /dev/shm
+/dev/sda1                14.7G     83.6M     14.6G   1% /home/usb
+```
