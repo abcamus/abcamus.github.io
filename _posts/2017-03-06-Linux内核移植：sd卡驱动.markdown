@@ -1,0 +1,167 @@
+---
+layout: post
+title:  "Linux内核：sdmmc驱动"
+author: Kai Qiu
+date:   2017-02-28 22:44:37 +0800
+categories: 嵌入式开发
+tags: Linux内核 sdmmc
+excerpt: 介绍Exynos 4412 sdmmc driver的移植调试
+---
+
+* menu
+{:toc}
+
+> 一种纯粹靠读书学来的真理，与我们的关系，就像假肢、假牙、蜡鼻子甚或人工植皮。而由独立思考获得的真理就如我们天生的四肢：只有它们才属于我们。 —— 叔本华
+
+读书的价值在于认识你自己，而不是用填鸭式的知识来武装自己。今天的主题是sd卡驱动。分为故事描述和总结两部分，第一部分是发现问题到解决问题的过程，第二部分是总结，不想知道过程的可以直接跳到总结。
+
+## 一 故事是这样的
+
+自从更新博客以来，有不少童鞋通过qq，邮箱来提问，其中有个频率比较高的问题：支不支持emmc启动。很遗憾，由于前期注意力不在Linux上，没有去探究过这方面的问题，今天把sd host驱动编译进了内核，看了下启动日志，发现问题了。
+
+```shell
+[    0.682835] of_get_named_gpiod_flags: can't parse 'cd-gpios' property of node '/sdhci@12530000[0]'
+[    0.682930] s3c-sdhci 12530000.sdhci: clock source 2: mmc_busclk.2 (40000000 Hz)
+[    0.689939] s3c-sdhci 12530000.sdhci: GPIO lookup for consumer cd
+[    0.689949] s3c-sdhci 12530000.sdhci: using device tree for GPIO lookup
+[    0.689959] of_get_named_gpiod_flags: can't parse 'cd-gpios' property of node '/sdhci@12530000[0]'
+[    0.689967] of_get_named_gpiod_flags: can't parse 'cd-gpio' property of node '/sdhci@12530000[0]'
+[    0.689976] s3c-sdhci 12530000.sdhci: using lookup tables for GPIO lookup
+[    0.689986] s3c-sdhci 12530000.sdhci: lookup for GPIO cd failed
+[    0.689996] s3c-sdhci 12530000.sdhci: GPIO lookup for consumer wp
+[    0.690004] s3c-sdhci 12530000.sdhci: using device tree for GPIO lookup
+[    0.690012] of_get_named_gpiod_flags: can't parse 'wp-gpios' property of node '/sdhci@12530000[0]'
+[    0.690020] of_get_named_gpiod_flags: can't parse 'wp-gpio' property of node '/sdhci@12530000[0]'
+[    0.690028] s3c-sdhci 12530000.sdhci: using lookup tables for GPIO lookup
+[    0.690037] s3c-sdhci 12530000.sdhci: lookup for GPIO wp failed
+[    0.690312] s3c-sdhci 12530000.sdhci: No vmmc regulator found
+[    0.695645] s3c-sdhci 12530000.sdhci: No vqmmc regulator found
+[    0.729613] mmc0: SDHCI controller on samsung-hsmmc [12530000.sdhci] using ADMA
+```
+
+log显示找不到需要的cd-gpio和wp-gpio。
+
+> 什么是cd-gpio和wp-gpio?
+
+参考 [mmc设备树介绍](https://www.kernel.org/doc/Documentation/devicetree/bindings/mmc/mmc.txt)
+
+cd-gpios: Specify GPIOs for card detection
+wp-gpios: Specify GPIOs for write protection
+
+查看Exynos4412用户手册可以知道：cd-gpio是和gpk2[2]复用的。
+
+```c
+sdhci@12530000 {
+		bus-width = <4>;
+		pinctrl-0 = <&sd2_clk &sd2_cmd &sd2_cd &sd2_bus4>;
+		pinctrl-names = "default";
+		status = "okay";
+		cd-gpios = <&gpk2 2 0>;
+	};
+```
+
+启动后找不到cd-gpio的错误没有了，
+
+```shell
+[    0.795664] mmc0: new high speed SDHC card at address aaaa
+[    0.800107] mmcblk0: mmc0:aaaa SU08G 7.40 GiB 
+[    0.805839]  mmcblk0:
+```
+
+检测到了tf卡，然后来测试一下访问tf卡。
+
+首先通过fdisk对tf卡进行分区，具体怎么用fdisk就不介绍了，但是执行`fdisk -l`的时候会报超时，再次执行的时候又没有了，有点奇怪，先不管这个。
+
+```shell
+[root@osee ]#fdisk -l
+[ 1961.203023] mmcblk0: error -110 sending status command, retrying
+[ 1961.207601] mmcblk0: error -110 sending status command, retrying
+[ 1961.213572] mmcblk0: error -110 sending status command, aborting
+[ 1961.375122] mmc0: tried to reset card
+Disk /dev/mmcblk0: 7580 MB, 7948206080 bytes, 15523840 sectors
+242560 cylinders, 4 heads, 16 sectors/track
+Units: cylinders of 64 * 512 = 32768 bytes
+
+Disk /dev/mmcblk0 doesn't contain a valid partition table
+[root@osee ]#fdisk -l
+Disk /dev/mmcblk0: 7580 MB, 7948206080 bytes, 15523840 sectors
+242560 cylinders, 4 heads, 16 sectors/track
+Units: cylinders of 64 * 512 = 32768 bytes
+```
+
+分区完之后写个文件，然后再去笔记本上打开，发现正常。
+
+> 重新拔插以下tf卡，在执行`fdisk -l`的时候不能识别，报I/O error，而且使能了sdmmc2的INSERT和REMOVAL中断，却没有抓到中断log。
+
+## 二 总结
+
+如何移植sd卡驱动呢？基本过程其实都是类似的。
+
+### 2.1 管脚配置
+
+```shell
+regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		mmc_reg: regulator@0 {
+			compatible = "regulator-fixed";
+			reg = <0>;
+			regulator-name = "VMEM_VDD_2.8V";
+			regulator-min-microvolt = <2800000>;
+			regulator-max-microvolt = <2800000>;
+		};
+};
+...
+sdhci@12530000 {
+		bus-width = <4>;
+		pinctrl-0 = <&sd2_clk &sd2_cmd &sd2_cd &sd2_bus4>;
+		cd-gpios = <&gpk2 2 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		vmmc-supply = <&mmc_reg>;
+		status = "okay";
+	};
+```
+
+### 2.2 驱动配置
+
+![sdmmc.png](https://ooo.0o0.ooo/2017/03/06/58bd0b98bbf4d.png)
+
+在sd初始化的时候使能了INSERET和REMOVAL中断，但是没有反应，还不知道为什么。
+
+```c
+static void sdhci_init(struct sdhci_host *host, int soft)
+{
+	if (soft)
+		sdhci_do_reset(host, SDHCI_RESET_CMD|SDHCI_RESET_DATA);
+	else
+		sdhci_do_reset(host, SDHCI_RESET_ALL);
+
+	host->ier = SDHCI_INT_BUS_POWER | SDHCI_INT_DATA_END_BIT |
+		    SDHCI_INT_DATA_CRC | SDHCI_INT_DATA_TIMEOUT |
+		    SDHCI_INT_INDEX | SDHCI_INT_END_BIT | SDHCI_INT_CRC |
+		    SDHCI_INT_TIMEOUT | SDHCI_INT_DATA_END |
+		    SDHCI_INT_RESPONSE | SDHCI_INT_CARD_INSERT |
+			SDHCI_INT_CARD_REMOVE;
+
+	sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+
+	if (soft) {
+		/* force clock reconfiguration */
+		host->clock = 0;
+		sdhci_set_ios(host->mmc, &host->mmc->ios);
+	}
+}
+```
+
+查看系统中断的时候，可以发现是有sd中断的，所以gic配置是没问题的。也许是控制器有问题？要探究一下sd卡插入中断是如何产生的才行。
+
+```shell
+[root@osee ]#cat /proc/interrupts 
+           CPU0       CPU1       CPU2       CPU3       
+ 36:          0          0          0          0       GIC  89 Edge      mct_comp_irq
+ 37:      45888       5049       3401       1244       GIC  28 Edge      MCT
+ 44:         36          0          0          0       GIC 107 Edge      mmc0
+```
