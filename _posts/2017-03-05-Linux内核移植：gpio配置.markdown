@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Linux内核移植：gpio配置"
+title:  "Linux内核移植：gpio驱动"
 author: Kai Qiu
 date:   2017-03-05 23:51:37 +0800
 categories: 嵌入式开发
