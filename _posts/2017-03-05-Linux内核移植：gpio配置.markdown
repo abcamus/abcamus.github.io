@@ -1,11 +1,11 @@
 ---
 layout: post
-title:  "Linux内核移植：gpio驱动"
+title:  "Linux内核移植：pinctrl和gpio驱动"
 author: Kai Qiu
 date:   2017-03-05 23:51:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 gpio
-excerpt: exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy需要gpio来控制提供bus，sdmmc的所有管脚都和gpio复用。这篇文章就介绍一下Linux 4.1版本内核是如何配置gpio的。
+excerpt: exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy需要gpio来控制提供bus，sdmmc的所有管脚都和gpio复用。gpio作为管脚的一种，现在融合到了pinctrl驱动中，篇文章就介绍一下Linux 4.1版本内核是如何管理gpio的。
 ---
 
 * menu
@@ -15,7 +15,7 @@ excerpt: exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy�
 
 谨以这句格言送给自己和所有在路上的朋友。
 
-exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy需要gpio来控制提供vbus，sdmmc的所有管脚都和gpio复用。这篇文章就介绍一下Linux 4.1版本内核是如何配置gpio的。
+exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy需要gpio来控制提供vbus，sdmmc的所有管脚都和gpio复用。gpio作为管脚的一种，现在融合到了pinctrl驱动中，这篇文章就介绍一下Linux 4.1版本内核是如何管理gpio的。
 
 ## 一 设备树和平台编码的配合
 
@@ -133,6 +133,60 @@ static const struct samsung_pin_bank_data exynos4x12_pin_banks0[] __initconst = 
 
 至于gpio的操作等都很简单，查看一下手册立马就知道了。如果刚更新到新版内核，可能要稍微琢磨一下上面这些结构体是怎么编码的。所以就在这里记录一下吧。希望看到的人能尽快上手。
 
-## 二 总结
+## 二 gpio调试
+
+关于gpio的知识应该是所有模块最简单的了，基本上熟悉了内核中的驱动框架之后就不会有什么难点了，遇到具体问题去翻一下手册就很容易解决。这里再记录一下内核中调试gpio的几种方法。
+
+- debugfs
+  驱动中把gpio相关信息注册进了debugfs，所以我们可以通过挂载debugfs来查看gpio配置。
+  
+  内核配置：
+  ![debugfs.png](https://ooo.0o0.ooo/2017/03/06/58bcc5d95f352.png)
+  
+  然后mount debugfs，就可以查看管脚映射了。
+  
+  ```shell
+  host > mount -t debugfs home/debugfs
+  host > ls home/debugfs/gpio
+106e0000.pinctrl  11400000.pinctrl  pinctrl-devices   pinctrl-maps
+11000000.pinctrl  3860000.pinctrl   pinctrl-handles
+  ```
+  
+- sysfs
+  也可以sysfs查看gpio配置，首先也要配置内核。
+  
+  ![sysfs_gpio.png](https://ooo.0o0.ooo/2017/03/06/58bcc7fdc756c.png)
+  
+  然后就可以在/sys/class/gpio/目录下看到相关信息了。
+  
+  ```shell
+  host > ls /sys/class/gpio
+  export       gpiochip14   gpiochip188  gpiochip244  gpiochip36   gpiochip83
+gpiochip0    gpiochip143  gpiochip196  gpiochip251  gpiochip40   gpiochip90
+gpiochip104  gpiochip148  gpiochip204  gpiochip259  gpiochip48   gpiochip97
+gpiochip111  gpiochip156  gpiochip212  gpiochip267  gpiochip56   unexport
+gpiochip118  gpiochip164  gpiochip22   gpiochip27   gpiochip64
+gpiochip120  gpiochip170  gpiochip220  gpiochip275  gpiochip70
+gpiochip128  gpiochip174  gpiochip228  gpiochip283  gpiochip78
+gpiochip136  gpiochip180  gpiochip236  gpiochip32   gpiochip8
+  ```
+  
+  现在我们想要点个灯看一下效果，可以这样操作，查看itop Exynos4412硬件原理图可以知道，GPL2[0]对应LED2。GPL[2]在内核中对应gpiochip120(可以通过搜索字符串gpl2或者直接查看源代码知道)。
+  
+  ```shell
+  host > echo 120 > export
+  host > echo "out" > gpio120/direction 
+  host > echo 1 > gpio120/value
+  ```
+  
+  可以看到LED2亮了。可以通过
+  
+  ```shell
+  host > echo 120 > unexport
+  ```
+  
+  取消映射。
+
+## 三 总结
 
 gpio可以说是最简单的硬件了，如果要对代码进行良好的抽象，保证实用性和可扩展性，却不见得是个简单的东西。总之，有现成的框架，遇到问题多看看手册自然就能迎刃而解。
