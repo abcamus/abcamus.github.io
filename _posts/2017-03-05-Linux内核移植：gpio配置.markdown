@@ -146,7 +146,7 @@ static const struct samsung_pin_bank_data exynos4x12_pin_banks0[] __initconst = 
   然后mount debugfs，就可以查看管脚映射了。
   
   ```shell
-  host # mount -t debugfs home/debugfs
+  host # mount -t debugfs none home/debugfs
   host # ls home/debugfs/gpio
 106e0000.pinctrl  11400000.pinctrl  pinctrl-devices   pinctrl-maps
 11000000.pinctrl  3860000.pinctrl   pinctrl-handles
