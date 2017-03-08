@@ -1,0 +1,77 @@
+---
+layout: post
+title:  "Linux内核移植：man内核函数"
+author: Kai Qiu
+date:   2017-03-08 13:31:37 +0800
+categories: 嵌入式开发
+tags: Linux内核 man文档 内核函数
+excerpt: 做到灵与肉的统一，首先要有个强健的体魄。所谓工欲善其事，必先利其器，在调试内核的时候，总是难免遇到我们不熟悉的函数，特别是添加外部驱动的时候，可能当前的内核版本的函数名已经变了，这个时候，一种方便的查询内核函数的方法就能发挥用武之地了。
+---
+
+* menu
+{:toc}
+
+> 身体虚弱，它将永远不会培养有活力的灵魂和智慧。 —— 卢梭
+
+做到灵与肉的统一，首先要有个强健的体魄。所谓工欲善其事，必先利其器，在调试内核的时候，总是难免遇到我们不熟悉的函数，特别是添加外部驱动的时候，可能当前的内核版本的函数名已经变了，这个时候，一种方便的查询内核函数的方法就能发挥用武之地了。
+
+## 一 引言
+
+Linux的用户常用man来查询一些信息，譬如我在不知道命令参数怎么给的时候会这样。
+
+```sh
+host $ man ln
+LN(1)                                                   User Commands                                                   LN(1)
+
+NAME
+       ln - make links between files
+
+SYNOPSIS
+       ln [OPTION]... [-T] TARGET LINK_NAME   (1st form)
+       ln [OPTION]... TARGET                  (2nd form)
+       ln [OPTION]... TARGET... DIRECTORY     (3rd form)
+       ln [OPTION]... -t DIRECTORY TARGET...  (4th form)
+```
+
+这样就查到怎么使用ln这个命令了。确实很方便。其实内核函数也是可以通过man命令查询的，但是要做些额外的工作。
+
+## 二 把内核函数信息整合到man中
+
+```sh
+host $ sudo apt-get install xmlto
+```
+
+进到内核源码目录，执行
+
+```sh
+host $ make mandocs
+host $ make installmandocs
+```
+
+试用一下：
+
+```sh
+host $ man module_init
+MODULE_INIT(9)                                          Driver Basics                                          MODULE_INIT(9)
+
+NAME
+       module_init - driver initialization entry point
+
+SYNOPSIS
+       module_init(x);
+
+ARGUMENTS
+       x
+           function to be run at kernel boot time or module insertion
+
+DESCRIPTION
+       module_init will either be called during do_initcalls (if builtin) or at module insertion time (if a module). There
+       can only be one per module.
+
+COPYRIGHT
+Kernel Hackers Manual 4.1.                                March 2017                                           MODULE_INIT(9)
+```
+
+## 三 总结
+
+虽然有man可以辅助参考，最靠谱的还是直接看源码了。
