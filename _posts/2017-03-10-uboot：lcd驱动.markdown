@@ -163,7 +163,7 @@ landrover > convert 400x272! source_img dest_img
 landrover > djpeg -colors 16 -bmp source.jpg > dest.bmp
 ```
 
-虽然指定了生成16位位图，但是实际上是24位的，就写了个小程序把rgb888数据转化成rgb565。这里也保存一下：
+通过bless删除文件头，只是虽然指定了生成16位位图，但是实际上是24位的，就写了个小程序把rgb888数据转化成rgb565。这里记录一下：
 
 ```cpp
 #include <stdio.h>
@@ -171,6 +171,7 @@ landrover > djpeg -colors 16 -bmp source.jpg > dest.bmp
 
 int main(int argc, char *argv[])
 {
+	//24bit 位图文件名为hello.bmp，输出文件为res.dat
     FILE *fin = fopen("hello.bmp", "r");
     FILE *fout = fopen("res.dat", "w");
     unsigned char data[3];
