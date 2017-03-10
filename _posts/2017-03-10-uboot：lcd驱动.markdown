@@ -1,0 +1,203 @@
+---
+layout: post
+title:  "uboot: lcd驱动"
+author: Kai Qiu
+date:   2017-03-10 18:20:37 +0800
+categories: 嵌入式开发
+tags: uboot lcd
+excerpt: 驱动tsc2007显示屏，历时两天时间，也许是感到倦了，这篇移植文档就当终结吧。关于Linux下的framebuffer驱动就不移植了，在已有的框架下，把配置好的参数添加进去即可。
+---
+
+* menu
+{:toc}
+
+> 人们手里的金钱是保持自由的一种工具。 —— 卢梭
+
+对于卢梭的这句话，不能同意更多啊。这次驱动一块显示屏，历时两天时间，也许是感到倦了，这篇移植文档就当终结吧。关于Linux下的framebuffer驱动就不移植了，在已有的框架下，把配置好的参数添加进去即可。
+
+## 一 硬件介绍
+
+显示屏为tsc2007，带电阻式触摸。平台依旧是Exynos4412。废话不多说，直接来看怎么驱动吧。
+
+## 二 设备树配置
+
+我的设备树文件是exynos4412-landrover.dts，仅供实验使用。display控制器申明如下：
+
+```shell
+fimd@11c00000 {
+		compatible = "samsung,exynos-fimd";
+		reg = <0x11c00000 0xa4>;
+
+	    // 显示屏尺寸为480x272 pixels
+		samsung,vl-freq = <60>;
+		samsung,vl-col = <480>;
+		samsung,vl-row = <272>;
+		samsung,vl-width = <480>;
+		samsung,vl-height = <272>;
+
+	    // timing配置
+		samsung,vl-clkp = <0>;
+		samsung,vl-oep = <0>;
+		samsung,vl-hsp = <1>;
+		samsung,vl-vsp = <0>;
+		samsung,vl-dp = <1>;
+		// 16 bit（1<<4）显示
+		samsung,vl-bpix = <4>;
+
+	    // timing
+		samsung,vl-hspw = <32>;
+		samsung,vl-hbpd = <80>;
+		samsung,vl-hfpd = <48>;
+		samsung,vl-vspw = <2>;
+		samsung,vl-vbpd = <1>;
+		samsung,vl-vfpd = <13>;
+		samsung,vl-cmd-allow-len = <0xf>;
+
+		samsung,winid = <0>;
+		samsung,power-on-delay = <30>;
+		samsung,interface-mode = <1>;
+		samsung,mipi-enabled = <0>;
+		//samsung,dp-enabled;
+		//samsung,dual-lcd-enabled;
+
+		samsung,logo-on = <1>;
+		samsung,resolution = <0>;
+		// rgb模式
+		samsung,rgb-mode = <1>;
+		samsung,pwm-out-gpio  = <&gpd0 1 1>;
+		samsung,bl-en-gpio = <&gpd0 0 1>;
+	};
+```
+
+申明compatible为samsung,exynos-fimd，因为驱动中是根据这个名字匹配的，详细可以参考doc/device-tree-bindings/video/exynos-fb.txt。
+
+## 三 驱动移植
+
+### 3.1 框架介绍
+
+uboot下的驱动框架其实都很简单的了，值得一提的是：lcd驱动被整合到sdtio框架中了，最开始的入口程序在`stdio_add_devices`，里面会调用`drv_lcd_init`。
+在landrover.h中定义
+
+```c
+#define CONFIG_EXYNOS_FB
+#define CONFIG_LCD
+#define CONFIG_FB_ADDR	0x40000000
+#define LCD_TEST_PATTERN
+#define LCD_BPP		LCD_COLOR16
+```
+
+就把驱动编译进了uboot。
+
+### 3.2 gpio配置
+
+参考原理图，配置各种管脚功能。我们的驱动主文件为drivers/video/exynos_fb.c，里面首先对设备树内容进行提取，保存在一个叫`panel_info`的结构体中。gpio的配置在`exynos_fb.c`文件一个叫`exynos_cfg_lcd_gpio`的函数，其他相关的接口也都在这个文件中，对应修改即可。
+
+```c
+__weak void exynos_cfg_lcd_gpio(void)
+{
+	/*
+	 * power,scl,sda
+	 */
+	unsigned int value = readl(GPD0CON);
+	writel(value|((3<<8)|(3<<12)), GPD0CON);
+	printf("GPD0CON value = 0x%x.\n", readl(GPD0CON));
+
+	/*
+	 * VGA EN
+	 */
+	writel(1<<8,GPC0CON);
+	writel(1<<2, GPC0DAT);
+
+	// BK_VDD_EN
+	writel(1<<16,GPL0CON);
+	writel(1<<4,GPL0DAT);
+
+	/*
+	 * lcd sync
+	 */
+	writel(0x22222222, GPF0CON);
+	writel(0xffff, GPF0DRV);
+
+	/*
+	 * lcd vd
+	 */
+	writel(0x22222222, GPF1CON);
+	writel(0xffff, GPF1DRV);
+	writel(0x22222222, GPF2CON);
+	writel(0xffff, GPF2DRV);
+	writel(0x2222, GPF3CON);
+	writel(0xff, GPF3DRV);
+}
+```
+
+### 3.3 时钟配置
+
+原生的时钟寄存器映射和4412的有些不一样，这里新定义了一个名为exynos4x12_clock的结构体。根据芯片手册修改相关寄存器即可。
+
+## 四 测试
+
+在进行以上更改后，启动后执行
+
+```shell
+landrover > cls
+```
+
+如下界面就出来了（这里省略了N多修改代码的过程，见[代码仓库](https://github.com/abcamus/bootloader-for-Exynos-4412)）
+
+![IMG_20170310_222320.jpg](https://ooo.0o0.ooo/2017/03/10/58c2bafe957e8.jpg)
+
+### 4.1 自己添加测试图片
+
+我的方法是:提取rgb565的数据，烧写到tf卡中，然后读到0x40000000位置。这里有必要介绍以下生成数据的方法，因为没有找到现成的工具，我是这么做的：
+
+**1. 把手机中的jpg图片拷贝到Ubuntu中，大小超过5MB，而且尺寸远远大于400x272。**
+**2. 用convert转换成400x272尺寸。**
+
+```shell
+landrover > convert 400x272! source_img dest_img
+```
+
+**3. 通过djpeg生成bmp**
+
+```shell
+landrover > djpeg -colors 16 -bmp source.jpg > dest.bmp
+```
+
+虽然指定了生成16位位图，但是实际上是24位的，就写了个小程序把rgb888数据转化成rgb565。这里也保存一下：
+
+```cpp
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[])
+{
+    FILE *fin = fopen("hello.bmp", "r");
+    FILE *fout = fopen("res.dat", "w");
+    unsigned char data[3];
+    unsigned short res;
+    unsigned int count = 0, index = 0;
+
+    if (fin == NULL || fout == NULL)
+    {
+        printf ("Open file error.\n");
+        exit(1);
+    }
+
+    while(count = fread(data, sizeof(char), sizeof(data), fin) == sizeof(data))
+    {
+        data[0] = data[0]*32/256;
+        data[1] = data[1]*64/256;
+        data[2] = data[2]*32/256;
+        res = (data[0]<<11)|(data[1]<<5)|(data[2]);
+        fwrite(&res, sizeof(char), sizeof(res), fout);
+    }
+
+    fclose(fin);
+    fclose(fout);
+    return 0;
+}
+```
+
+**4. 通过tf卡烧写**
+
+保存到tf卡，再load到0x40000000内存中就行了。
