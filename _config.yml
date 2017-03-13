@@ -46,9 +46,13 @@ kramdown:
     - smart
   enable_coderay: true
   syntax_highlighter: rouge
-#syntax_highlighter_opts:
 coderay:
-    coderay_line_numbers: inline
+    coderay_wrap:              div
+    coderay_line_numbers:      inline
+    coderay_line_number_start: 1
+    coderay_tab_width:         4
+    coderay_bold_every:        10
+    coderay_css:               style
 
 # url
 category_dir: category/
