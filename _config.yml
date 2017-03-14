@@ -6,8 +6,8 @@
 # 'jekyll serve'. If you change this file, please restart the server process.
 
 # Site settings
-title: Rickey
-brief-intro: System Engineer
+title: Rickey 裘
+brief-intro: 嵌入式软件工程师
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://abcamus.github.io" # the base hostname & protocol for your site
 
