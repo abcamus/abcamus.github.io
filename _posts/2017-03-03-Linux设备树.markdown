@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "再论设备树：Linux设备树"
+title:  "再论Linux设备树"
 author: Kai Qiu
 date:   2017-03-03 20:22:37 +0800
 categories: 嵌入式开发
 tags: 设备树
+topics: Linux内核移植
 excerpt: 介绍Linux设备树表示
 ---
 

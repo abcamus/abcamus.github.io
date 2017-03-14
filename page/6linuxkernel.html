@@ -1,0 +1,46 @@
+---
+layout: default
+title: Linux内核移植
+icon: tags
+type: topic
+---
+
+<div class="page clearfix">
+    <div class="left">
+        <h1>{{page.title}}</h1>
+        <hr>
+        <ul>
+			{% for post in site.posts %}
+			{% if post.topics == {{page.title}} %}
+			<li>
+				<time>
+					{{ post.date | date:"%F" }} {{ post.date | date: "%a" }}.
+				</time>
+				<a class="title" href="{{ post.url }}">{{post.topics}}: {{ post.title }}</a>
+				{% include category.html %}
+				{% include tag.html %}
+			</li>
+			{% endif %}
+			{% endfor %}           
+			{% include comments.html %}
+        </ul>
+    </div>
+    <button class="anchor"><i class="fa fa-anchor"></i></button>
+    <div class="right">
+        <div class="wrap">
+
+            <!-- Content -->
+            <div class="side content">
+                <div align="center">
+                    公告
+                </div>
+                <ul id="content-side" class="content-ul">
+					<h3 align="center">认识你自己</h3>
+                </ul>
+            </div>
+            <!-- 其他div框放到这里 -->
+            <!-- <div class="side">bbbb</div> -->
+        </div>
+    </div>
+</div>
+<script src="{{ "/js/pageContent.js " | prepend: site.baseurl }}" charset="utf-8"></script>

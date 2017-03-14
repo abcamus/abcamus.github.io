@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "uboot: lcd驱动"
+title:  "uboot lcd驱动"
 author: Kai Qiu
 date:   2017-03-10 18:20:37 +0800
 categories: 嵌入式开发
 tags: uboot lcd
+topics: Linux内核移植
 excerpt: 驱动tsc2007显示屏，历时两天时间，也许是感到倦了，这篇移植文档就当终结吧。关于Linux下的framebuffer驱动就不移植了，在已有的框架下，把配置好的参数添加进去即可。
 ---
 

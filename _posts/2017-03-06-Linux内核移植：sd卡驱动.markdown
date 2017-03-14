@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "Linux内核移植：sdmmc驱动"
+title:  "Linux sdmmc驱动"
 author: Kai Qiu
 date:   2017-02-28 22:44:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 sdmmc
+topics: Linux内核移植
 excerpt: 介绍Exynos 4412 sdmmc driver的移植调试
 ---
 

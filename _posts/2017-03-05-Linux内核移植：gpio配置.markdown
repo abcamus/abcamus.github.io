@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "Linux内核移植：pinctrl和gpio驱动"
+title:  "Linux pinctrl和gpio驱动"
 author: Kai Qiu
 date:   2017-03-05 23:51:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 gpio
+topics: Linux内核移植
 excerpt: exynos 4412平台有很多模块穿插了gpio的控制，譬如usb phy需要gpio来控制提供bus，sdmmc的所有管脚都和gpio复用。gpio作为管脚的一种，现在融合到了pinctrl驱动中，篇文章就介绍一下Linux 4.1版本内核是如何管理gpio的。
 ---
 

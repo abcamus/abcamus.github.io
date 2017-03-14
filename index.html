@@ -77,12 +77,19 @@ layout: default
             <div class="side">
                 <div>
                     <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-                    推荐阅读
+                    专题推荐
                 </div>
                 <ul class="content-ul" recent>
+					{% for my_page in site.pages %}
+					{% if my_page.type == 'topic'%}
+					<li><a href="{{ my_page.url | prepend: site.baseurl }}">{{my_page.title}}</a></li>
+					{% endif %}
+					{% endfor %}
+				<!--
                     {% for post in site.posts offset: 0 limit: 10  %}
                         <li><a href="{{ post.url }}">{{ post.title }}</a></li>
                     {% endfor %}
+					-->
                 </ul>
             </div>
 

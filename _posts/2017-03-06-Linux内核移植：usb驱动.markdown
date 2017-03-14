@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "Linux内核移植：usb驱动"
+title:  "Linux usb驱动"
 author: Kai Qiu
 date:   2017-03-06 13:44:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 usb驱动
+topics: Linux内核移植
 excerpt: 移植Exynos4412 usb驱动。
 ---
 

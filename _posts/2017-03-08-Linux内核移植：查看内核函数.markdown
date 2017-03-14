@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "Linux内核移植：man内核函数"
+title:  "Linux man内核函数"
 author: Kai Qiu
 date:   2017-03-08 13:31:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 man文档 内核函数
+topics: Linux内核移植
 excerpt: 做到灵与肉的统一，首先要有个强健的体魄。所谓工欲善其事，必先利其器，在调试内核的时候，总是难免遇到我们不熟悉的函数，特别是添加外部驱动的时候，可能当前的内核版本的函数名已经变了，这个时候，一种方便的查询内核函数的方法就能发挥用武之地了。
 ---
 

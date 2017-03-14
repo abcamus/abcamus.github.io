@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "Linux内核移植：eMMC驱动"
+title:  "Linux eMMC驱动"
 author: Kai Qiu
 date:   2017-03-01 00:50:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 eMMC驱动
+topics: Linux内核移植
 excerpt: 移植Exynos 4412 eMMC驱动
 ---
 

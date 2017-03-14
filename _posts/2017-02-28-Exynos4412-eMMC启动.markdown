@@ -1,10 +1,11 @@
 ---
 layout: post
-title:  "uboot：eMMC启动"
+title:  "uboot eMMC启动"
 author: Kai Qiu
 date:   2017-02-28 21:22:37 +0800
 categories: 嵌入式开发
 tags: Linux内核 eMMC
+topics: Linux内核移植
 excerpt: 从建立博客到现在陆陆续续有好几个童鞋来找我要代码，其中有个问题经常提到：支不支持从emmc启动。但是我移植uboot和kernel只是为了探究我自己感兴趣的东东，所以没有去关注emmc启动的问题。最近正好工作告一段落，就来看看eMMC boot的问题吧。
 ---
 
