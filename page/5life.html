@@ -12,7 +12,7 @@ type: topic
         <hr>
         <ul>
 			{% for post in site.posts %}
-			{% if post.topics == {{page.title}} %}
+			{% if post.topics == page.title %}
 			<li>
 				<time>
 					{{ post.date | date:"%F" }} {{ post.date | date: "%a" }}.
