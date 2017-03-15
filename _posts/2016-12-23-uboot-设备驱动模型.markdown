@@ -4,6 +4,7 @@ title:  "uboot 设备驱动模型 "
 date:   2016-12-23 21:22:37 +0800
 categories: 嵌入式开发
 tags: uboot 设备驱动模型
+topics: Linux内核移植
 excerpt: 关于uboot中设备驱动的一些解构。
 ---
 

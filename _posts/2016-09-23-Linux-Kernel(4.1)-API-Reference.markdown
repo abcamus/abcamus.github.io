@@ -4,6 +4,7 @@ title:  "Linux Kernel(4.1) API Reference "
 date:   2016-09-23 21:22:37 +0800
 categories: 嵌入式开发
 tags: Linux
+topics: Linux内核移植
 excerpt: 摘要
 ---
 

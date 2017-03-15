@@ -4,6 +4,7 @@ title:  "printascii详解"
 date:   2016-12-13 21:22:37 +0800
 categories: 嵌入式开发
 tags: Linux uboot printascii 调试
+topics: Linux内核移植
 excerpt: uboot下的printascii函数可以用来在串口打印信息，实现代码调试。这个函数实际上就是通过配置硬件相关的参数，通过uart完成打印。
 ---
 

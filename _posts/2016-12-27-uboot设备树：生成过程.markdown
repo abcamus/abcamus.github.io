@@ -1,9 +1,10 @@
 ---
 layout: post
-title:  "u-boot设备树： 生成过程分析"
+title:  "uboot设备树--生成过程分析"
 date:   2016-12-27 21:22:37 +0800
 categories: 嵌入式开发
 tags: uboot 设备树编码
+topics: Linux内核移植
 excerpt: 以设备树在内存中的分布结构为突破口，介绍编码过程。
 ---
 

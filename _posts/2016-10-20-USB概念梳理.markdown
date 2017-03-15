@@ -4,6 +4,7 @@ title:  "USB概念梳理 "
 date:   2016-10-20 21:22:37 +0800
 categories: 嵌入式开发
 tags: USB
+topics: Linux内核移植
 excerpt: 摘要
 ---
 

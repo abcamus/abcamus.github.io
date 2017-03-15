@@ -4,6 +4,7 @@ title:  "usb hid gadget驱动 "
 date:   2016-10-31 21:22:37 +0800
 categories: 嵌入式开发
 tags: USB hid gadget Linux
+topics: Linux
 excerpt: 因为usb gadget驱动在实际应用中比较少见，通常usb口主要就两个功能，一是供电；二是接外部设备。而且如果是开发usb设备的话，很多是通过usb设备芯片配合firmware来提供成熟的解决方案，所以写这篇文章，以hid gadget驱动为例，来记录usb gadget驱动的开发使用过程。
 ---
 

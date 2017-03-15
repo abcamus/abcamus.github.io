@@ -4,6 +4,7 @@ title:  "Exynos4412 sd卡启动uboot"
 date:   2016-11-08 21:22:37 +0800
 categories: 嵌入式开发
 tags: exynos4412 sdboot uboot
+topics: Linux内核移植
 excerpt: 本文介绍裸机环境下如何编译烧写exynos 4412开发板的uboot
 ---
 

@@ -4,6 +4,7 @@ title:  "Linux USB Host 驱动开发入门 "
 date:   2016-10-21 21:22:37 +0800
 categories: 嵌入式开发
 tags: USB Linux
+topics: Linux内核移植
 excerpt: 摘要
 ---
 

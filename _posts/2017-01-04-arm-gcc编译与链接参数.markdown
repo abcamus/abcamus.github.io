@@ -4,6 +4,7 @@ title:  "arm gcc编译与链接参数"
 date:   2017-01-04 21:22:37 +0800
 categories: 嵌入式开发
 tags: arm gcc compiler
+topics: Linux内核移植
 excerpt: 虽然当前android啥的是主流，但是在进行裸机开发的时候，熟悉编译器这些参数就很重要了。这篇文章以uboot的编译和链接过程为实例介绍arm gcc相关的参数。
 ---
 

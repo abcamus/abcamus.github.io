@@ -1,9 +1,11 @@
 ---
 layout: post
 title:  "uboot 框架及移植 "
+author: Kai Qiu
 date:   2016-05-05 21:22:37 +0800
 categories: 嵌入式开发
 tags: uboot 移植
+topics: Linux内核移植
 excerpt: 本文以最新版uboot(2016.05)为例介绍bootloader框架，uboot代码越来越庞大，除了boot系统之外，充当测试平台都没问题，支持的硬件也很丰富，spiflash, mmc, usb, network, serial, sound.etc， 简直就是小型的操作系统。
 ---
 

@@ -4,6 +4,7 @@ title:  "Exynos4412时钟模块以及UART时钟配置 "
 date:   2016-11-18 21:22:37 +0800
 categories: 嵌入式开发
 tags: exynos4412 uart
+topics: Linux内核移植
 excerpt: exynos4412 SoC的时钟模块组成以及配置
 ---
 

@@ -1,9 +1,11 @@
 ---
 layout: post
 title:  "内核timer "
+author: Kai Qiu
 date:   2016-04-19 21:22:37 +0800
 categories: 嵌入式开发
 tags: Linux timer
+topics: Linux内核移植
 excerpt: 摘要
 ---
 
