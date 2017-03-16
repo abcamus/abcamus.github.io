@@ -8,7 +8,7 @@
  * clickMenu
  */
 (function() {
-    if (window.innerWidth <= 770) {
+    if (window.innerWidth <= 2048) {
         var menuBtn = document.querySelector('#headerMenu')
         var nav = document.querySelector('#headerNav')
         menuBtn.onclick = function(e) {
