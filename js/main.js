@@ -40,7 +40,7 @@
         // 页面顶部滚进去的距离
         var scrollTop = Math.max(document.documentElement.scrollTop, document.body.scrollTop)
 
-        if (scrollTop > 200) {
+        if (scrollTop > 100) {
             backToTop.classList.add('back-to-top-show')
         } else {
             backToTop.classList.remove('back-to-top-show')
