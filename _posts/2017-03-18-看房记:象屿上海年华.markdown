@@ -3,7 +3,7 @@ layout: post
 title:  "象屿上海年华 & 金地都会意境"
 author: Kai Qiu
 date:   2017-03-18 21:22:37 +0800
-categories: 生活
+categories: 读书随笔
 tags: 象屿上海年华 金地都会意境
 topics: 看房记
 excerpt: 摘要
