@@ -3,8 +3,8 @@ layout: post
 title:  "象屿上海年华 & 金地都会意境"
 author: Kai Qiu
 date:   2017-03-18 21:22:37 +0800
-categories: 标签
-tags: 象屿上海年华
+categories: 生活
+tags: 象屿上海年华 金地都会意境
 topics: 看房记
 excerpt: 摘要
 ---
@@ -33,6 +33,8 @@ excerpt: 摘要
 410万左右，三个房价有两个朝南。
 
 ## 二 金地都会意境
+
+![IMG_20170318_183352.jpg](https://ooo.0o0.ooo/2017/03/19/58ce8c7dc9bbe.jpg)
 
 一期在售，基本是联排叠加别墅，目前公寓不多，都是一层和二层，精装交付。
 
