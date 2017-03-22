@@ -7,7 +7,7 @@
 
 # Site settings
 title: Rickey 裘
-brief-intro: 嵌入式软件工程师
+brief-intro: 一无所知
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://abcamus.github.io" # the base hostname & protocol for your site
 
