@@ -44,8 +44,8 @@ OBJS += $(DWC3_SRC:%.c=%.o)
 ### 3.1 初始化和设备识别
 
 `usb_init`: 进行usb3.0控制器的初始化。
-   --`usb_lowlevel_init`: 映射寄存器地址，reset控制器，以及一些关键数据结构分配。
-   --`usb_new_device`: 枚举设备（控制传输测试）。
+   |--`usb_lowlevel_init`: 映射寄存器地址，reset控制器，以及一些关键数据结构分配。
+   |--`usb_new_device`: 枚举设备（控制传输测试）。
 
 ### 3.2 传输测试
 
