@@ -16,7 +16,9 @@ excerpt: 根据pcie驱动来认识pcie的工作流程
 ## 一、pcie术语
 
 IATU: Internal Address Translation Table，实现`CFG_TYPE0`和`CFG_TYPE1`的配置事务访问（寄存器的具体配置请结合datasheet ATU地址转换）。
+
 BARS: Base Address Register
+
 LTSSM: Link Training and Status State Machine
 
 ## 二、流程
