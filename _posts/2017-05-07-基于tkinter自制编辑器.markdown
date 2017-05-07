@@ -3,7 +3,7 @@ layout: post
 title:  "基于tkinter自制编辑器"
 author: Kai Qiu
 date:   2017-05-07 20:55:37 +0800
-categories: 嵌入式开发
+categories: 工具
 tags: python 编辑器
 excerpt: 做了一个简易编辑器，可以基于这个东东来玩点有意思的
 ---
@@ -20,11 +20,14 @@ excerpt: 做了一个简易编辑器，可以基于这个东东来玩点有意�
 
 ## 一、Feature List
 
-1 行号显示，滚动条支持。
-2 自动完成Windows/Linux/Darwin系统下的字体适配，一键切换中英文自体。
-3 带词法分析，可以扩展诸如语法高亮等功能。
-4 打开文件、保存文件、退出程序的快捷键支持。
-5 自带molokai主题
+编号 | 说明
+--|--
+1 | 行号显示，滚动条支持。
+2 | 自动完成Windows/Linux/Darwin系统下的字体适配，一键切换中英文自体。
+3 | 带词法分析，可以扩展诸如语法高亮等功能。
+4 | 打开文件、保存文件、退出程序的快捷键支持。
+5 | 自带molokai主题
+
 
 ## 二、Widgets List
 
