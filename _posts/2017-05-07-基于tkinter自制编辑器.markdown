@@ -1,0 +1,44 @@
+---
+layout: post
+title:  "基于tkinter自制编辑器"
+author: Kai Qiu
+date:   2017-05-07 20:55:37 +0800
+categories: 工具
+tags: python 编辑器
+excerpt: 做了一个简易编辑器，可以基于这个东东来玩点有意思的
+---
+
+* menu
+{:toc}
+
+> 在选择职业时，我们应该遵循的主要方针是人类的幸福和我们自身的完美。 --马克思
+
+代码位于 [note editor仓库](https://github.com/abcamus/gadgets/tree/master/note-editor)。
+
+软件截图
+![Screenshot from 2017-05-07 13-22-26.png](https://ooo.0o0.ooo/2017/05/07/590ee8a94ed57.png)
+
+## 一、Feature List
+
+编号 | 说明
+--|--
+1 | 行号显示，滚动条支持。
+2 | 自动完成Windows/Linux/Darwin系统下的字体适配，一键切换中英文自体。
+3 | 带词法分析，可以扩展诸如语法高亮等功能。
+4 | 打开文件、保存文件、退出程序的快捷键支持。
+5 | 自带molokai主题
+
+
+## 二、Widgets List
+
+组件名称 | 作用
+--|--
+frame 	| 作为容器，用来控制显示特征
+menu	| 菜单显示
+text	| 输入区域
+label	| 显示行号区域
+scrollbar	| 滚动条
+
+## 三、后话
+
+本来想针对markdown语法实现一个跨平台编辑器，可以自己根据实际需求进行扩展，在实现的时候发现其实基于编辑器可以做更多有意思的事情， 譬如在编写代码的时候进行代码分析，或者添加一些有趣的东西在上面，例如之前写的[计算人生寿命的小程序](https://github.com/abcamus/gadgets/tree/master/life-calc)，也可以加到里面去。

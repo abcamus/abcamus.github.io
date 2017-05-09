@@ -25,8 +25,9 @@ description_footer: 探索未来世界的可能性
 
 # comments
 # two ways to comment, only choose one, and use your own short name
-duoshuo_shortname: abcamus
+#duoshuo_shortname: abcamus
 #disqus_shortname: abcamus
+#youyan_discuss: abcamus
 
 # statistic analysis 统计代码
 # 百度统计 id，将统计代码替换为自己的百度统计id，即
