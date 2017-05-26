@@ -20,3 +20,5 @@ excerpt: 整理PCI-e的学习资料
 3. [PCIe driver development for Exynos SoC](http://events.linuxfoundation.org/sites/events/files/slides/klf2013_han_0.pdf)
 
 4. [DM81xx_AM38xx_PCI_Express_Endpoint_Driver_User_Guide](http://processors.wiki.ti.com/index.php/DM81xx_AM38xx_PCI_Express_Endpoint_Driver_User_Guide)
+
+5. [DWC pcie reference mannual](http://read.pudn.com/downloads153/ebook/670795/DWC_pcie_reference.pdf)
