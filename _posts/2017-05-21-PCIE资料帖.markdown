@@ -22,3 +22,41 @@ excerpt: 整理PCI-e的学习资料
 4. [DM81xx_AM38xx_PCI_Express_Endpoint_Driver_User_Guide](http://processors.wiki.ti.com/index.php/DM81xx_AM38xx_PCI_Express_Endpoint_Driver_User_Guide)
 
 5. [DWC pcie reference mannual](http://read.pudn.com/downloads153/ebook/670795/DWC_pcie_reference.pdf)
+
+### 一、designware pcie产品：
+
+1. Dual Mode core
+2. RC core
+3. EP core
+4. Switch core
+
+### 二、架构：
+
+1. Common Xpress Port Logic (CXPL)
+   实现大部分的传输层逻辑，所有的数据链路层逻辑，物理层的MAC部分（包括LTSSM）。这个module就是所说的core。
+   XADM和RADM都是针对传输应用添加的模块。比如说添加传输队列，仲裁TLP transmmision。
+2. Transmit Application-Dependent Module (XADM)
+3. Receive Application-Dependent Module (RADM)
+4. Configuration-Dependent Module (CDM)
+5. Power Management Controller (PMC)
+6. Local Bus Controller (LBC)
+7. Message Generation (MSG_GEN)
+8. Hot Plug Control (hotplug_ctrl)
+
+### 三、操作
+
+#### 3.1 DM/RC/EP 模式下的初始化
+
+在reset之后，通过检测device_type输入进入到RC或者EP模式，CDM内部配置寄存器为复位值。
+
+LTSSM前配置：keep the app_ltssm_enable signal deasserted after reset until the application is ready to establish a Link and start receiving and transmitting TLPs，在这个阶段通过DBI配置好配置寄存器。
+
+开始LTSSM：assert app_ltssm_enable to allow the LTSSM to begin Link establishment
+
+#### 3.2 Link Establishment
+
+PIPE口，和usb3.0一样。建立链路后，Data Link module发起flow control initialization，完成后通知transaction layer module可以发送接收TLP。
+
+#### 3.3 TLP processing
+
+
