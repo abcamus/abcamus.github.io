@@ -43,7 +43,7 @@ excerpt: 整理PCI-e的学习资料
 7. Message Generation (MSG_GEN)
 8. Hot Plug Control (hotplug_ctrl)
 
-### 三、操作
+### 三、核心（CXPL）操作
 
 #### 3.1 DM/RC/EP 模式下的初始化
 
@@ -59,4 +59,116 @@ PIPE口，和usb3.0一样。建立链路后，Data Link module发起flow control
 
 #### 3.3 TLP processing
 
+#### 3.4 Interrupt
+
+支持传统中断intr和MSI
+
+#### 3.5 Flow Control
+
+分为两个phase：初始化和更新。VC0的初始化跟着Link初始化，在发起正常传输之前完成。
+
+#### 3.6 Address Translation
+
+完成AMBA memory space到PCI memory space的转换，包括transmit地址转换和receive地址转换
+
+#### 3.7 Peer-to-Peer Support(P2P)
+
+针对switch或者多个port的RC，PCIe支持port到port传输，而不用endpoint-to-root或者root-to-endpoint（这里有个问题，port和endpoint以及root的hierachy是怎样的）
+
+#### 3.8 PCIe 2.0 features
+
+支持PCI Express 2.0 specification中所有非optional feature。
+
+#### 3.9 Power Management
+
+![Link Power Management](https://ooo.0o0.ooo/2017/05/28/592ab2c2c2263.png)
+
+#### 3.10 Single Root I/O Virtualization(SR-IOV)
+
+支持多个系统镜像共享PCIe硬件资源，通过`CX_SRIOV_ENABLE`开启。包括Function Level Reset(FLR)和Alternate Routing ID Interpretation(ARI)
+
+### 四、时钟和复位信号
+
+#### 4.1 core_clk
+
+62.5MHz/125MHz/250MHz/500MHz，所有core的输入信号（除了reset信号）和这个clock同步。
+
+#### 4.2 pipe_clk
+
+pipe上的信号由这个时钟同步，为125MHz或者250MHz，影响`freq_step module`
+
+#### 4.3 core_rst_n
+
+复位core，除了PMC模块
+
+#### 4.4 aux_clk
+
+用于PMC域
+
+#### 4.5 pwr_rst_n
+
+复位PMC模块，用于上电时的冷复位，会复位`aux_clk`域的所有寄存器。
+
+#### 4.6 sticky_rst_n
+
+复位所有configuration register space中的sticky bit registers。
+
+#### 4.7 non_sticky_rst_n
+
+复位configuration register space中所有non-sticky bit registers。
+
+#### 4.8 app_init_rst
+
+给下游设备发送一个Hot Reset。
+
+#### 4.9 app_req_retry_en
+
+延迟配置请求直到初始化完成，EP有效。
+
+#### 4.10 training_rst_n
+
+Hot Reset from upstream component
+
+### 五、PCIe寄存器
+
+#### 5.1 EP模式
+
+每个function有4096 bytes配置空间，分为：
+
+- 256字节PCI配置空间
+64字节的PCI 3.0兼容配置空间header，PCI标准功能结构链表（在偏移0x40之后任意位置开始）。
+- 3840字节的PCIe扩展配置空间（0x100开始）
+包括PCIe扩展功能结构链表（0x100开始），端口逻辑寄存器（0x700开始）
+
+![EP模式配置空间](https://ooo.0o0.ooo/2017/05/29/592b94dfbaa5a.png)
+
+包括PF(Physical Function) register map和VF(Virtual Function) register map。
+
+应用通过DBI访问配置寄存器，Bits[11:0]选择target function，Bits[18:16]选择target physical function（在没有使能SR-IOV的情况下）。否则通过`dbi_func_num`和`dbi_vfunc_num`表征是哪一个PF或者VF。
+
+配置空间映射：分为PF和VF
+
+- PF PCI-Compatible Configuration Header Register
+
+![PF PCI-Compatible Configuration Header](https://ooo.0o0.ooo/2017/05/29/592c2a8a174ef.png)
+
+- PF PCI Standard Capability Structures Register
+
+- PF PCI Express Extended Capability Register
+
+- VF PCI-Compatible Configuration Header Register
+
+- VF PCI Standard Capability Structures Register
+
+
+#### 5.2 RC模式
+
+每个function有4K Bytes配置空间，分为：
+
+- 256字节的PCI 3.0 兼容Configuration Space Header
+- PCI 功能结构体，从偏移0x40开始
+- PCIe扩展配置空间，从偏移0x100开始
+- 端口逻辑寄存器(vendor-specific registers)，从0x700开始
+
+![Core Configuration Space Layout: RC Mode and Switch](https://ooo.0o0.ooo/2017/05/29/592c2d708feb3.png)
 
