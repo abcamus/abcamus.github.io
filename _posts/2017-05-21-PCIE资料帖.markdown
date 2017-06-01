@@ -172,3 +172,10 @@ Hot Reset from upstream component
 
 ![Core Configuration Space Layout: RC Mode and Switch](https://ooo.0o0.ooo/2017/05/29/592c2d708feb3.png)
 
+### 六、软件工作（与usb3.0比较）
+
+PCIe有三个独立的地址空间：mem空间、I/O空间和配置空间，对每个设备都有其配置空间，通过ID寻址（USB通过协议通信，实际上在文件系统中，都统一为ID寻址，通过总线/设备/接口进行标识，PCIe的function对应usb的interface）。
+
+designware的PCIe driver在内核中位于`drivers/pci/host/pcie-designware.c`，像samsung exynos的PCIe host驱动为同目录下`pci-exynos.c`。
+
+这里的`pcie-designware.c`只是作为一个接口库供驱动调用，并不向kernel注册设备（usb dwc3自己是一个platform device，然后再去probe厂商定义的usb device）。（待更新）
