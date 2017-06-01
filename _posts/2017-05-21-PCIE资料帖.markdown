@@ -23,6 +23,8 @@ excerpt: 整理PCI-e的学习资料
 
 5. [DWC pcie reference mannual](http://read.pudn.com/downloads153/ebook/670795/DWC_pcie_reference.pdf)
 
+6. [PCIe tutorial](http://xillybus.com/tutorials/pci-express-tlp-pcie-primer-tutorial-guide-2)
+
 ### 一、designware pcie产品：
 
 1. Dual Mode core
@@ -178,4 +180,60 @@ PCIe有三个独立的地址空间：mem空间、I/O空间和配置空间，对�
 
 designware的PCIe driver在内核中位于`drivers/pci/host/pcie-designware.c`，像samsung exynos的PCIe host驱动为同目录下`pci-exynos.c`。
 
-这里的`pcie-designware.c`只是作为一个接口库供驱动调用，并不向kernel注册设备（usb dwc3自己是一个platform device，然后再去probe厂商定义的usb device）。（待更新）
+这里的`pcie-designware.c`只是作为一个接口库供驱动调用，并不向kernel注册设备（usb dwc3自己是一个platform device，然后再去probe厂商定义的usb device）。
+
+#### 6.1 准备工作
+
+时钟和mem地址映射
+
+clk name | description
+--|--
+pcie clk | 
+pcie bus clk |
+elbi base | Customer defined mem region
+phy base | phy寄存器基址
+block base | ??
+irq | 中断号
+msi irq | 如果支持msi的话，配置对应的中断号
+配置空间地址 | 内核中通过pcie_port管理
+dbi base | 配置空间基址
+mem base | mem空间基址
+num of lanes | 几条lane
+
+#### 6.2 PCIe操作流程
+
+procedure | description
+--|--
+host init | 初始化RC，根据驱动参数进行配置，建立链路
+
+#### 6.2 Establish Link流程
+
+参考自`drivers/host/pci-exynos.c`
+
+procedure|	description
+--|--
+assert core reset and phy reset |
+de-assert phy reset |
+power on phy |
+initialize phy |
+pulse for common reset |
+de-assert core reset |
+setup root complex | 设置configuration space header
+enable ltssm | 开始链路训练
+
+![initialization.PNG](https://ooo.0o0.ooo/2017/06/01/592fba706aebd.png)
+
+### 附录： 知识点
+
+DLLP是由Data Link Layer管理的数据包，包括NAK，High Priority ACK, Flow Control, Vendor Control, Power Management。
+![transmitArbitor.PNG](https://ooo.0o0.ooo/2017/06/01/592fbf62c42fb.png)
+
+
+abbreviation | description
+--|--
+DLLP | Data Link Layer Packets
+DBI | Data Bus Interface
+CDM | Configuration-Dependent Module
+LBC | Local Bus Controller
+ELBI | External Local Bus Interface
+iATU | Internal Address Translation Unit
