@@ -4,8 +4,8 @@ title:  "PCI-e资料汇总"
 author: Kai Qiu
 date:   2017-05-21 16:18:37 +0800
 categories: 嵌入式开发
-tags: PCI-e
-excerpt: 整理PCI-e的学习资料
+tags: PCIe
+excerpt: 整理PCIe的学习资料
 ---
 
 * menu
@@ -25,14 +25,18 @@ excerpt: 整理PCI-e的学习资料
 
 6. [PCIe tutorial](http://xillybus.com/tutorials/pci-express-tlp-pcie-primer-tutorial-guide-2)
 
-### 一、designware pcie产品：
+7. [深入PCI与PCIe之二：软件篇](https://zhuanlan.zhihu.com/p/26244141)
+
+8. [PCIe设备枚举流程](http://asic-world.blogspot.sg/2014/04/pci-express-advanced-topics-part-2.html)
+
+## 一、designware pcie产品：
 
 1. Dual Mode core
 2. RC core
 3. EP core
 4. Switch core
 
-### 二、架构：
+## 二、架构：
 
 1. Common Xpress Port Logic (CXPL)
    实现大部分的传输层逻辑，所有的数据链路层逻辑，物理层的MAC部分（包括LTSSM）。这个module就是所说的core。
@@ -45,9 +49,9 @@ excerpt: 整理PCI-e的学习资料
 7. Message Generation (MSG_GEN)
 8. Hot Plug Control (hotplug_ctrl)
 
-### 三、核心（CXPL）操作
+## 三、核心（CXPL）操作
 
-#### 3.1 DM/RC/EP 模式下的初始化
+### 3.1 DM/RC/EP 模式下的初始化
 
 在reset之后，通过检测device_type输入进入到RC或者EP模式，CDM内部配置寄存器为复位值。
 
@@ -55,85 +59,85 @@ LTSSM前配置：keep the app_ltssm_enable signal deasserted after reset until t
 
 开始LTSSM：assert app_ltssm_enable to allow the LTSSM to begin Link establishment
 
-#### 3.2 Link Establishment
+### 3.2 Link Establishment
 
 PIPE口，和usb3.0一样。建立链路后，Data Link module发起flow control initialization，完成后通知transaction layer module可以发送接收TLP。
 
-#### 3.3 TLP processing
+### 3.3 TLP processing
 
-#### 3.4 Interrupt
+### 3.4 Interrupt
 
 支持传统中断intr和MSI
 
-#### 3.5 Flow Control
+### 3.5 Flow Control
 
 分为两个phase：初始化和更新。VC0的初始化跟着Link初始化，在发起正常传输之前完成。
 
-#### 3.6 Address Translation
+### 3.6 Address Translation
 
 完成AMBA memory space到PCI memory space的转换，包括transmit地址转换和receive地址转换
 
-#### 3.7 Peer-to-Peer Support(P2P)
+### 3.7 Peer-to-Peer Support(P2P)
 
 针对switch或者多个port的RC，PCIe支持port到port传输，而不用endpoint-to-root或者root-to-endpoint（这里有个问题，port和endpoint以及root的hierachy是怎样的）
 
-#### 3.8 PCIe 2.0 features
+### 3.8 PCIe 2.0 features
 
 支持PCI Express 2.0 specification中所有非optional feature。
 
-#### 3.9 Power Management
+### 3.9 Power Management
 
 ![Link Power Management](https://ooo.0o0.ooo/2017/05/28/592ab2c2c2263.png)
 
-#### 3.10 Single Root I/O Virtualization(SR-IOV)
+### 3.10 Single Root I/O Virtualization(SR-IOV)
 
 支持多个系统镜像共享PCIe硬件资源，通过`CX_SRIOV_ENABLE`开启。包括Function Level Reset(FLR)和Alternate Routing ID Interpretation(ARI)
 
-### 四、时钟和复位信号
+## 四、时钟和复位信号
 
-#### 4.1 core_clk
+### 4.1 core_clk
 
 62.5MHz/125MHz/250MHz/500MHz，所有core的输入信号（除了reset信号）和这个clock同步。
 
-#### 4.2 pipe_clk
+### 4.2 pipe_clk
 
 pipe上的信号由这个时钟同步，为125MHz或者250MHz，影响`freq_step module`
 
-#### 4.3 core_rst_n
+### 4.3 core_rst_n
 
 复位core，除了PMC模块
 
-#### 4.4 aux_clk
+### 4.4 aux_clk
 
 用于PMC域
 
-#### 4.5 pwr_rst_n
+### 4.5 pwr_rst_n
 
 复位PMC模块，用于上电时的冷复位，会复位`aux_clk`域的所有寄存器。
 
-#### 4.6 sticky_rst_n
+### 4.6 sticky_rst_n
 
 复位所有configuration register space中的sticky bit registers。
 
-#### 4.7 non_sticky_rst_n
+### 4.7 non_sticky_rst_n
 
 复位configuration register space中所有non-sticky bit registers。
 
-#### 4.8 app_init_rst
+### 4.8 app_init_rst
 
 给下游设备发送一个Hot Reset。
 
-#### 4.9 app_req_retry_en
+### 4.9 app_req_retry_en
 
 延迟配置请求直到初始化完成，EP有效。
 
-#### 4.10 training_rst_n
+### 4.10 training_rst_n
 
 Hot Reset from upstream component
 
-### 五、PCIe寄存器
+## 五、PCIe寄存器
 
-#### 5.1 EP模式
+### 5.1 EP模式
 
 每个function有4096 bytes配置空间，分为：
 
@@ -163,7 +167,7 @@ Hot Reset from upstream component
 - VF PCI Standard Capability Structures Register
 
 
-#### 5.2 RC模式
+### 5.2 RC模式
 
 每个function有4K Bytes配置空间，分为：
 
@@ -174,7 +178,7 @@ Hot Reset from upstream component
 
 ![Core Configuration Space Layout: RC Mode and Switch](https://ooo.0o0.ooo/2017/05/29/592c2d708feb3.png)
 
-### 六、软件工作（与usb3.0比较）
+## 六、软件工作（与usb3.0比较）
 
 PCIe有三个独立的地址空间：mem空间、I/O空间和配置空间，对每个设备都有其配置空间，通过ID寻址（USB通过协议通信，实际上在文件系统中，都统一为ID寻址，通过总线/设备/接口进行标识，PCIe的function对应usb的interface）。
 
@@ -182,7 +186,7 @@ designware的PCIe driver在内核中位于`drivers/pci/host/pcie-designware.c`�
 
 这里的`pcie-designware.c`只是作为一个接口库供驱动调用，并不向kernel注册设备（usb dwc3自己是一个platform device，然后再去probe厂商定义的usb device）。
 
-#### 6.1 准备工作
+### 6.1 准备工作
 
 时钟和mem地址映射
 
@@ -200,13 +204,14 @@ dbi base | 配置空间基址
 mem base | mem空间基址
 num of lanes | 几条lane
 
-#### 6.2 PCIe操作流程
+### 6.2 PCIe操作流程
 
 procedure | description
 --|--
 host init | 初始化RC，根据驱动参数进行配置，建立链路
+scan | 扫描设备
 
-#### 6.2 Establish Link流程
+#### 6.2.1 Establish Link流程
 
 参考自`drivers/host/pci-exynos.c`
 
@@ -223,11 +228,17 @@ enable ltssm | 开始链路训练
 
 ![initialization.PNG](https://ooo.0o0.ooo/2017/06/01/592fba706aebd.png)
 
-### 附录： 知识点
+#### 6.2.2 PCIe设备枚举
+
+在`pcie-designware.c`中通过调用`pci_scan_root_bus_msi`（使能了MSI）或者`pci_scan_root_bus`，然后进到`pci/probe.c`。
+
+[PCIe设备枚举流程](http://asic-world.blogspot.sg/2014/04/pci-express-advanced-topics-part-2.html)
+
+
+### 附录： Acknowledge
 
 DLLP是由Data Link Layer管理的数据包，包括NAK，High Priority ACK, Flow Control, Vendor Control, Power Management。
 ![transmitArbitor.PNG](https://ooo.0o0.ooo/2017/06/01/592fbf62c42fb.png)
-
 
 abbreviation | description
 --|--
