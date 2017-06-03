@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "PCI-e资料汇总"
+title:  "PCIe资料汇总"
 author: Kai Qiu
 date:   2017-05-21 16:18:37 +0800
 categories: 嵌入式开发
@@ -13,7 +13,7 @@ excerpt: 整理PCIe的学习资料
 
 > 与其用华丽的外衣装饰自己，不如用知识武装自己 --马克思
 
-1. [PCI-e wiki](https://zh.wikipedia.org/zh-sg/PCI_Express)
+1. [PCIe wiki](https://zh.wikipedia.org/zh-sg/PCI_Express)
 
 2. [PCI Express Port Bus Driver Support for Linux](http://caxapa.ru/thumbs/294559/ols2005v2-pages-9-18.pdf)
 
