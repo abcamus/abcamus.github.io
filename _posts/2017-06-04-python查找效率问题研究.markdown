@@ -1,0 +1,148 @@
+---
+layout: post
+title:  "python搜索效率研究"
+author: Kai Qiu
+date:   2017-06-04 21:22:37 +0800
+categories: 嵌入式开发
+tags: python
+excerpt: 分析python在字典和列表中的搜索效率
+---
+
+* menu
+{:toc}
+
+> 天地不仁，以万物为刍狗 --老子
+
+本文来研究在python中查找元素的效率问题，实验方法如下：
+
+1. 初始化一个大列表和字典，其中分别存放了10000000个元素。
+2. 查找的元素以1000000的间隔递增，检测程序执行速度。
+3. 自己实现顺序比较查找，用同样的方法进行测试，并和其他方法进行对比。
+
+## 一、程序实现
+
+程序实现包含上述三个查找算法，均很简单。
+
+### 1.1 通过item in list实现查找
+
+```
+def find_item_in_list(item, mylist):
+    if item in mylist:
+        return True
+    else:
+        return False
+```
+
+### 1.2 通过dict.has_key实现查找
+
+```
+def find_item_in_dict(item, mydict):
+    return mydict.has_key(item)
+```
+
+### 1.3 自定义顺序遍历查找
+
+```
+def my_find_in_list(item, mylist):
+    for each in mylist:
+        if item == each:
+            return True
+    return False
+```
+
+### 1.4 测试接口及shell脚本
+
+driver如下
+
+```
+if __name__ == "__main__":
+    # contribute list and dict
+    len = 10000000
+    mylist = []
+    mydict = {}
+    for i in range(len):
+        mylist.append(i)
+        mydict[i] = True
+
+    start = time.clock()
+    num = int(sys.argv[1])
+    #find_item_in_dict(num, mydict)
+    #find_item_in_list(num, mylist)
+    my_find_in_list(num, mylist)
+
+    print time.clock() - start
+```
+
+shell实现如下
+
+```
+for i in $(seq 0 1000000 10000000)
+do
+	echo -n -e "Num = $i    "
+	#echo `/usr/bin/time -f "%U" python has_num.py $i`
+	python has_num.py $i
+done
+```
+
+## 二、测试过程
+
+在终端下执行
+
+```
+./test.sh
+```
+
+## 三、结果及分析
+
+### 3.1 通过item in list实现的查找
+
+查找元素 | 时间/s
+Num = 0    | 1.80000000003e-05
+Num = 1000000 |    0.016998
+Num = 2000000 |    0.036007
+Num = 3000000 |    0.048604
+Num = 4000000 |    0.073256
+Num = 5000000 |    0.092047
+Num = 6000000 |    0.108037
+Num = 7000000 |    0.125925
+Num = 8000000 |    0.145165
+Num = 9000000 |    0.167104
+Num = 10000000|    0.180939
+
+### 3.2 通过dict.has_key()查找
+
+查找元素 | 时间/s
+Num = 0 |    3.10000000003e-05
+Num = 1000000 |    3.00000000002e-05
+Num = 2000000 |    3.00000000002e-05
+Num = 3000000 |    2.90000000001e-05
+Num = 4000000 |    3.2e-05
+Num = 5000000 |    3.09999999999e-05
+Num = 6000000 |    2.79999999999e-05
+Num = 7000000 |    3.00000000002e-05
+Num = 8000000 |    3.10000000003e-05
+Num = 9000000 |    2.99999999998e-05
+Num = 10000000|    2.90000000001e-05
+
+### 3.3 顺序查找
+
+查找元素 | 时间/s
+Num = 0 |    2.09999999998e-05
+Num = 1000000 |    0.039827
+Num = 2000000 |    0.085993
+Num = 3000000 |    0.135519
+Num = 4000000 |    0.174482
+Num = 5000000 |    0.21543
+Num = 6000000 |    0.260043
+Num = 7000000 |    0.271837
+Num = 8000000 |    0.342575
+Num = 9000000 |    0.389764
+Num = 10000000|    0.429033
+
+通过gnuplot生成对比图如下
+
+![search.png](https://ooo.0o0.ooo/2017/06/04/59340a2facae2.png)
+
+### 3.4 结果分析
+
+在上图中，data1、data2和data3分别和上面的程序顺序对应，可以看到data1和data3都呈现顺序增长，而data2和其余两者相比，时间小到可以忽略不计。data3相比于data1消耗更多时间，而且data3接近一次关系，这和理论分析结果是一样的，因为list中的数据是从小到大依次排列的，随着查找元素的递增，需要增加匹配同样多次数才能匹配到。
