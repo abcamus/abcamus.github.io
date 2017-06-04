@@ -56,7 +56,7 @@ driver如下
 
 ```
 if __name__ == "__main__":
-    # contribute list and dict
+    # construct list and dict
     len = 10000000
     mylist = []
     mydict = {}
