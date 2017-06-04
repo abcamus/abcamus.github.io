@@ -13,8 +13,6 @@ excerpt: 记录以下vim的一些工作配置
 
 > 业精于勤荒于嘻
 
-<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=30780595&auto=1&height=66"></iframe>
-
 从大学一直到工作岗位，一直都在用vim，无论是到哪个unix或类unix环境下，只要把自己平时用的配置文件拷贝一份，就能无缝运行。就是这样一个工具，用了这么久，觉得有必要写篇总结性的文章，一方面分析一下工作过程，另一方面也记录一下一些问题。
 
 ## 一、说说这个编辑器
