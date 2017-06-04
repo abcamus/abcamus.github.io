@@ -1,0 +1,248 @@
+---
+layout: post
+title:  "VIM完全配置"
+author: Kai Qiu
+date:   2017-06-04 14:41:37 +0800
+categories: 工具
+tags: vim
+excerpt: 记录以下vim的一些工作配置
+---
+
+* menu
+{:toc}
+
+> 业精于勤荒于嘻
+
+<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=30780595&auto=1&height=66"></iframe>
+
+从大学一直到工作岗位，一直都在用vim，无论是到哪个unix或类unix环境下，只要把自己平时用的配置文件拷贝一份，就能无缝运行。就是这样一个工具，用了这么久，觉得有必要写篇总结性的文章，一方面分析一下工作过程，另一方面也记录一下一些问题。
+
+## 一、说说这个编辑器
+
+不得不说，vim是一款出色的编辑器，体现在两方面：一是轻量级跨平台的，unix服务器也好，桌面版的linux发行版也好，还是macbook，都自带vim，而且都能兼容（windows只能用gvim或者在linux模拟环境下运行vim）；二是提供出色的相对灵活的编辑功能，包括自定义快捷键，定义宏，添加插件，视图模式和编辑模式分离，可运行shell命令等等。
+
+当前使用的版本为7.4.1689，运行在ubuntu 16.04下。这是 [vim官方网址](http://www.vim.org/)，不记得以前的版本了，记得是从ubuntu8.04开始接触的（不禁感慨，原来转眼接触linux已经八年了）。下面这个log是vim的版本信息
+
+```
+$ vim --version
+VIM - Vi IMproved 7.4 (2013 Aug 10, compiled Nov 24 2016 16:44:48)
+包含补丁: 1-1689
+另外的补丁： 8.0.0056
+修改者 pkg-vim-maintainers@lists.alioth.debian.org
+编译者 pkg-vim-maintainers@lists.alioth.debian.org
+巨型版本 带 GTK2 图形界面。
+  可使用(+)与不可使用(-)的功能:
++acl             +farsi           +mouse_netterm   +tag_binary
++arabic          +file_in_path    +mouse_sgr       +tag_old_static
++autocmd         +find_in_path    -mouse_sysmouse  -tag_any_white
++balloon_eval    +float           +mouse_urxvt     +tcl
++browse          +folding         +mouse_xterm     +terminfo
+++builtin_terms  -footer          +multi_byte      +termresponse
++byte_offset     +fork()          +multi_lang      +textobjects
++channel         +gettext         -mzscheme        +timers
++cindent         -hangul_input    +netbeans_intg   +title
++clientserver    +iconv           +packages        +toolbar
++clipboard       +insert_expand   +path_extra      +user_commands
++cmdline_compl   +job             +perl            +vertsplit
++cmdline_hist    +jumplist        +persistent_undo +virtualedit
++cmdline_info    +keymap          +postscript      +visual
++comments        +langmap         +printer         +visualextra
++conceal         +libcall         +profile         +viminfo
++cryptv          +linebreak       -python          +vreplace
++cscope          +lispindent      +python3         +wildignore
++cursorbind      +listcmds        +quickfix        +wildmenu
++cursorshape     +localmap        +reltime         +windows
++dialog_con_gui  +lua             +rightleft       +writebackup
++diff            +menu            +ruby            +X11
++digraphs        +mksession       +scrollbind      -xfontset
++dnd             +modify_fname    +signs           +xim
+-ebcdic          +mouse           +smartindent     +xsmp_interact
++emacs_tags      +mouseshape      +startuptime     +xterm_clipboard
++eval            +mouse_dec       +statusline      -xterm_save
++ex_extra        +mouse_gpm       -sun_workshop    +xpm
++extra_search    -mouse_jsbterm   +syntax          
+     系统 vimrc 文件: "$VIM/vimrc"
+     用户 vimrc 文件: "$HOME/.vimrc"
+ 第二用户 vimrc 文件: "~/.vim/vimrc"
+      用户 exrc 文件: "$HOME/.exrc"
+    系统 gvimrc 文件: "$VIM/gvimrc"
+    用户 gvimrc 文件: "$HOME/.gvimrc"
+第二用户 gvimrc 文件: "~/.vim/gvimrc"
+        系统菜单文件: "$VIMRUNTIME/menu.vim"
+         $VIM 预设值: "/usr/share/vim"
+编译方式: gcc -c -I. -Iproto -DHAVE_CONFIG_H -DFEAT_GUI_GTK  -pthread -I/usr/include/gtk-2.0 -I/usr/lib/i386-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0/ -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/libpng12 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -Wdate-time  -g -O2 -fPIE -fstack-protector-strong -Wformat -Werror=format-security -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1      
+链接方式: gcc   -L. -Wl,-Bsymbolic-functions -Wl,-z,relro -fstack-protector -rdynamic -Wl,-export-dynamic -Wl,-E  -Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -o vim   -lgtk-x11-2.0 -lgdk-x11-2.0 -lpangocairo-1.0 -latk-1.0 -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -lfreetype -lSM -lICE -lXpm -lXt -lX11 -lXdmcp -lSM -lICE  -lm -ltinfo -lnsl  -lselinux  -lacl -lattr -lgpm -ldl  -L/usr/lib -llua5.2 -Wl,-E  -fstack-protector-strong -L/usr/local/lib  -L/usr/lib/i386-linux-gnu/perl/5.22/CORE -lperl -ldl -lm -lpthread -lcrypt  -L/usr/lib/python3.5/config-3.5m-i386-linux-gnu -lpython3.5m -lpthread -ldl -lutil -lm -L/usr/lib/i386-linux-gnu -ltcl8.6 -ldl -lz -lpthread -lieee -lm -lruby-2.3 -lpthread -lgmp -ldl -lcrypt -lm
+```
+
+## 二、配置vim
+
+从上面的版本信息可以看到，vim启动的时候会去几个地方搜索配置文件：一是$VIM/vimrc；二是$HOME/.vimrc；三是其他一些地方。用户自己的配置文件就放在$HOME/.vimrc。下面就来看一份.vimrc。我现在用的配置是基于网上一份配置改的，找不到出处了，写着是2010年版本的。
+
+配置主要分为以下几个部分：
+
+1. 显示相关配置
+2. 编辑功能配置
+3. 插件扩展配置
+4. 系统相关配置
+
+### 2.1 显示相关配置
+
+功能 | 语法
+-- | --
+开启语法高亮 | syntax on
+主题设置 | colorscheme theme_name
+显示行号 | set number
+突出显示当前行 | set cursorline
+
+基本的界面显示相关的这几个就够了，需要进一步扩展的话依赖其他插件（譬如powerline，file explorer，taglist等）。
+
+### 2.2 编辑功能配置
+
+这一块主要定义一些快捷键，像移动，选择，标签操作等。
+
+- 设置编码
+
+```
+set encoding=utf-8
+```
+
+- 使用鼠标
+
+```
+set mouse=a
+```
+
+- taglist快捷键
+
+```
+nnoremap <silent><F4> :TlistToggle<CR>
+```
+
+- 搜索设置
+
+```
+set ignorecase smartcase    " 搜索时忽略大小写，但在有一个或以上大写字母时仍保持对大小写敏感
+set nowrapscan              " 禁止在搜索到文件两端时重新搜索
+set incsearch               " 输入搜索内容时就显示搜索结果
+set hlsearch                " 搜索时高亮显示被找到的文本
+```
+
+- 语法折叠
+
+```
+set foldenable              " 开始折叠
+set foldmethod=syntax       " 设置语法折叠
+set foldcolumn=0            " 设置折叠区域的宽度
+setlocal foldlevel=1        " 设置折叠层数为
+set foldclose=all           " 设置为自动关闭折叠                            
+nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
+                            " 用空格键来开关折叠
+```
+
+- 退格、缩进和删除
+
+```
+set smartindent             " 开启新行时使用智能自动缩进
+set backspace=indent,eol,start
+                            " 不设定在插入状态无法用退格键和 Delete 键删除回车符
+```
+
+- 支持alt键加数字切换tab(gvim中使用)
+
+```
+nn <M-1> 1gt
+nn <M-2> 2gt
+nn <M-3> 3gt
+nn <M-4> 4gt
+nn <M-5> 5gt
+nn <M-6> 6gt
+nn <M-7> 7gt
+nn <M-8> 8gt
+```
+
+- 切换窗口
+
+```
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+```
+
+- NERDTree 切换
+
+```
+map <F3> :NERDTreeToggle<CR>
+imap <F3> <ESC>:NERDTreeToggle<CR>
+```
+
+- tags递归搜索
+
+```
+set tags=tags;/
+```
+
+### 2.3 插件扩展
+
+```
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+Bundle 'gmarik/vundle'
+Bundle "Lokaltog/vim-powerline"
+Bundle "OmniCppComplete"
+Bundle 'The-NERD-tree'
+" Bundle 'The-NERD-Commenter'
+Bundle 'winmanager'
+"Bundle 'zencoding-vim'
+"Bundle 'vim-plugins'
+```
+
+### 2.4 系统相关配置
+
+这部分主要是不同平台的兼容性问题
+
+- 不同平台的配置文件位置
+
+```
+" return OS type, eg: windows, or linux, mac, et.st..
+function! MySys()
+    if has("win16") || has("win32") || has("win64") || has("win95")
+        return "windows"
+    elseif has("unix")
+        return "linux"
+    endif
+endfunction
+
+" 用户目录变量$VIMFILES
+if MySys() == "windows"
+    let $VIMFILES = $VIM.'/vimfiles'
+elseif MySys() == "linux"
+    let $VIMFILES = $HOME.'/.vim'
+endif
+
+```
+
+- 语言环境设置
+
+```
+" 配置多语言环境
+if has("multi_byte")
+    " UTF-8 编码
+    set encoding=utf-8
+    set termencoding=utf-8
+    set formatoptions+=mM
+    set fencs=utf-8,gbk "here can add argment to spurt the chinese
+
+    if v:lang =~? '^\(zh\)\|\(ja\)\|\(ko\)'
+        set ambiwidth=double
+    endif
+
+    if has("win32")
+        source $VIMRUNTIME/delmenu.vim
+        source $VIMRUNTIME/menu.vim
+        language messages zh_CN.utf-8
+    endif
+else
+    echoerr "Sorry, this version of (g)vim was not compiled with +multi_byte"
+endif
+```
