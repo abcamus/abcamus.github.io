@@ -1,0 +1,53 @@
+---
+layout: post
+title:  "访问PCIe BAR空间"
+author: Kai Qiu
+date:   2017-06-21 21:22:37 +0800
+categories: 嵌入式开发
+tags: PCIe
+excerpt: 理解PCIe的space mapping是一件重要的事情
+---
+
+* menu
+{:toc}
+
+
+google了一圈，发现xilinx论坛的一个回答比较好， 链接如下：
+
+https://forums.xilinx.com/t5/PCI-Express/PCI-express-Base-Address-Register/td-p/685289
+
+里面讲了如何访问BAR指定的mem空间。
+
+下面对BAR空间以及配置空间的访问做一个系统的总结，其实就是在回答以下几个问题：
+
+1. PCIe中四种tlp和BAR空间的关系是怎样的？
+2. tlp是怎么发起的？
+3. tlp是怎么到相应的下游设备的？
+
+
+## 一、四种tlp和BAR空间的关系
+
+四种传输如下
+
+类型 | 说明
+-- | --
+mem req tlp | 访问mem空间
+io req tlp | 访问io空间
+cfg req tlp | 访问配置空间
+message tlp | 设备专用
+
+故名思义， mem req就是访问mem空间的，io req就是访问io空间的，cfg req就是访问配置空间的，这个再清楚不过了，应该毫无争议。
+
+## 二、tlp是怎么发起的
+
+结论：tlp是总线接口发起的。这貌似是一句屁话，但是事实确实是这样的，疑惑可能在于software要做什么事情，要知道，像usb可是要自己去配置trb的。这里有个重要的模块：atu。software要做的就是配置atu。
+
+atu又是啥？ atu是地址转换单元（Address Translation Unit）的缩写，负责把cpu域的物理地址转换到PCI域的总线地址。如果总线上有访问对应CPU域物理地址的请求，将会通过atu生成tlp，tlp中的地址就是atu转换后的地址。atu中还有一个重要的配置：tlp类型。不同的tlp路由策略是不一样的，而路由策略影响对地址的解析。这里就涉及tlp路由了。
+
+## 三、tlp路由
+
+对于配置请求来讲，地址被解析成总线号+设备号+功能号+偏移，文档上讲的基于ID的路由，所以访问的是和设备对应的4KB配置空间。而对于io请求或者mem请求，是基于地址的路由，通过和各个设备的BAR空间范围的比较来确认地址落在哪个设备的BAR空间上，然后进行相应的读写操作。
+
+> 最后记录一下wiki上关于PCIe各个版本的理论速度
+
+![2017-06-20 22-42-35屏幕截图.png](https://ooo.0o0.ooo/2017/06/20/594934829ee0e.png)
