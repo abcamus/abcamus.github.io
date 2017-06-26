@@ -1,0 +1,196 @@
+---
+layout: post
+title:  "arm linux MMU"
+author: Kai Qiu
+date:   2017-06-24 21:22:37 +0800
+categories: 嵌入式开发
+tags: Linux内核
+excerpt: 分析内核启动入口流程
+---
+
+* menu
+{:toc}
+
+> 人的一生其实就是在不断见证的过程，小时候见证了长辈的人生末尾，长大后见证爱情的发展，然后又见证小孩的成长。而这所谓的见证总是受生命和时代的限制，譬如，我们不可能见证五四运动时期思想的解放，不可能见证父母的青少年成长经历。人这一生只不过是时间轴上特定段落的一个点而已。
+
+最近花了点时间看看Linux内核在启动的时候具体是怎么配置arm的，因为不同的arm核差别还是很大的，有的还有secure extension，multiprocessor extension，virtualization，在调试的时候如果遇到问题可以作为参考。分析代码的时候要时刻记得的事情有两件：
+
+1. 当前cpu处于什么状态
+2. 各个寄存器当前值的含义（因为启动代码都是汇编实现的）
+
+## 一、内核入口
+
+`arch/arm/kernel/head.S`中ENTRY(stext)
+
+## 二、不同体系结构的setup
+
+内核中把arm不同系列的setup入口编译到了`.proc.info.init`段中，代码位于`arch/arm/mm/proc-v7.S`
+
+```
+.section ".proc.info.init", #alloc
+
+	/*
+	 * Standard v7 proc info content
+	 */
+.macro __v7_proc name, initfunc, mm_mmuflags = 0, io_mmuflags = 0, hwcaps = 0, proc_fns = v7_processor_functions
+	ALT_SMP(.long	PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_AP_READ | \
+			PMD_SECT_AF | PMD_FLAGS_SMP | \mm_mmuflags)
+	ALT_UP(.long	PMD_TYPE_SECT | PMD_SECT_AP_WRITE | PMD_SECT_AP_READ | \
+			PMD_SECT_AF | PMD_FLAGS_UP | \mm_mmuflags)
+	.long	PMD_TYPE_SECT | PMD_SECT_AP_WRITE | \
+		PMD_SECT_AP_READ | PMD_SECT_AF | \io_mmuflags
+	initfn	\initfunc, \name
+	.long	cpu_arch_name
+	.long	cpu_elf_name
+	.long	HWCAP_SWP | HWCAP_HALF | HWCAP_THUMB | HWCAP_FAST_MULT | \
+		HWCAP_EDSP | HWCAP_TLS | \hwcaps
+	.long	cpu_v7_name
+	.long	\proc_fns
+	.long	v7wbi_tlb_fns
+	.long	v6_user_fns
+	.long	v7_cache_fns
+.endm
+
+#ifndef CONFIG_ARM_LPAE
+	/*
+	 * ARM Ltd. Cortex A5 processor.
+	 */
+	.type   __v7_ca5mp_proc_info, #object
+__v7_ca5mp_proc_info:
+	.long	0x410fc050
+	.long	0xff0ffff0
+	__v7_proc __v7_ca5mp_proc_info, __v7_ca5mp_setup
+	.size	__v7_ca5mp_proc_info, . - __v7_ca5mp_proc_info
+
+	/*
+	 * ARM Ltd. Cortex A9 processor.
+	 */
+	.type   __v7_ca9mp_proc_info, #object
+__v7_ca9mp_proc_info:
+	.long	0x410fc090
+	.long	0xff0ffff0
+	__v7_proc __v7_ca9mp_proc_info, __v7_ca9mp_setup, proc_fns = ca9mp_processor_functions
+	.size	__v7_ca9mp_proc_info, . - __v7_ca9mp_proc_info
+
+	/*
+	 * ARM Ltd. Cortex A8 processor.
+	 */
+	.type	__v7_ca8_proc_info, #object
+__v7_ca8_proc_info:
+	.long	0x410fc080
+	.long	0xff0ffff0
+	__v7_proc __v7_ca8_proc_info, __v7_setup, proc_fns = ca8_processor_functions
+	.size	__v7_ca8_proc_info, . - __v7_ca8_proc_info
+
+#endif	/* CONFIG_ARM_LPAE */
+
+	/*
+	 * Marvell PJ4B processor.
+	 */
+#ifdef CONFIG_CPU_PJ4B
+	.type   __v7_pj4b_proc_info, #object
+__v7_pj4b_proc_info:
+	.long	0x560f5800
+	.long	0xff0fff00
+	__v7_proc __v7_pj4b_proc_info, __v7_pj4b_setup, proc_fns = pj4b_processor_functions
+	.size	__v7_pj4b_proc_info, . - __v7_pj4b_proc_info
+#endif
+
+	/*
+	 * ARM Ltd. Cortex R7 processor.
+	 */
+	.type	__v7_cr7mp_proc_info, #object
+__v7_cr7mp_proc_info:
+	.long	0x410fc170
+	.long	0xff0ffff0
+	__v7_proc __v7_cr7mp_proc_info, __v7_cr7mp_setup
+	.size	__v7_cr7mp_proc_info, . - __v7_cr7mp_proc_info
+
+	/*
+	 * ARM Ltd. Cortex A7 processor.
+	 */
+	.type	__v7_ca7mp_proc_info, #object
+__v7_ca7mp_proc_info:
+	.long	0x410fc070
+	.long	0xff0ffff0
+	__v7_proc __v7_ca7mp_proc_info, __v7_ca7mp_setup
+	.size	__v7_ca7mp_proc_info, . - __v7_ca7mp_proc_info
+
+	/*
+	 * ARM Ltd. Cortex A12 processor.
+	 */
+	.type	__v7_ca12mp_proc_info, #object
+__v7_ca12mp_proc_info:
+	.long	0x410fc0d0
+	.long	0xff0ffff0
+	__v7_proc __v7_ca12mp_proc_info, __v7_ca12mp_setup
+	.size	__v7_ca12mp_proc_info, . - __v7_ca12mp_proc_info
+
+	/*
+	 * ARM Ltd. Cortex A15 processor.
+	 */
+	.type	__v7_ca15mp_proc_info, #object
+__v7_ca15mp_proc_info:
+	.long	0x410fc0f0
+	.long	0xff0ffff0
+	__v7_proc __v7_ca15mp_proc_info, __v7_ca15mp_setup
+	.size	__v7_ca15mp_proc_info, . - __v7_ca15mp_proc_info
+
+	/*
+	 * Broadcom Corporation Brahma-B15 processor.
+	 */
+	.type	__v7_b15mp_proc_info, #object
+__v7_b15mp_proc_info:
+	.long	0x420f00f0
+	.long	0xff0ffff0
+	__v7_proc __v7_b15mp_proc_info, __v7_b15mp_setup
+	.size	__v7_b15mp_proc_info, . - __v7_b15mp_proc_info
+
+	/*
+	 * ARM Ltd. Cortex A17 processor.
+	 */
+	.type	__v7_ca17mp_proc_info, #object
+__v7_ca17mp_proc_info:
+	.long	0x410fc0e0
+	.long	0xff0ffff0
+	__v7_proc __v7_ca17mp_proc_info, __v7_ca17mp_setup
+	.size	__v7_ca17mp_proc_info, . - __v7_ca17mp_proc_info
+
+	/*
+	 * Qualcomm Inc. Krait processors.
+	 */
+	.type	__krait_proc_info, #object
+__krait_proc_info:
+	.long	0x510f0400		@ Required ID value
+	.long	0xff0ffc00		@ Mask for ID
+	/*
+	 * Some Krait processors don't indicate support for SDIV and UDIV
+	 * instructions in the ARM instruction set, even though they actually
+	 * do support them. They also don't indicate support for fused multiply
+	 * instructions even though they actually do support them.
+	 */
+	__v7_proc __krait_proc_info, __v7_setup, hwcaps = HWCAP_IDIV | HWCAP_VFPv4
+	.size	__krait_proc_info, . - __krait_proc_info
+
+	/*
+	 * Match any ARMv7 processor core.
+	 */
+	.type	__v7_proc_info, #object
+__v7_proc_info:
+	.long	0x000f0000		@ Required ID value
+	.long	0x000f0000		@ Mask for ID
+	__v7_proc __v7_proc_info, __v7_setup
+	.size	__v7_proc_info, . - __v7_proc_info
+```
+
+## 三、cpu配置流程
+
+- 找到processor type相关结构体
+- 处理tags
+- fixup smp (由宏SMP_ON_UP控制) 和fixup p/v table
+- 创建mmu页表，使能
+
+
+针对多核架构，要开启asctl.smp
+
+![2017-06-27 00-33-07屏幕截图.png](https://ooo.0o0.ooo/2017/06/27/5951375d46b5e.png)
