@@ -190,7 +190,5 @@ __v7_proc_info:
 - fixup smp (由宏SMP_ON_UP控制) 和fixup p/v table
 - 创建mmu页表，使能
 
+分析代码真的是很无趣的一件事情，而且最终每个人需要调试的点其实就是一两个，譬如针对多核架构，要开启asctl.smp，MVA invalidate dcache的指令变成了clean and invalidate。
 
-针对多核架构，要开启asctl.smp
-
-![2017-06-27 00-33-07屏幕截图.png](https://ooo.0o0.ooo/2017/06/27/5951375d46b5e.png)
