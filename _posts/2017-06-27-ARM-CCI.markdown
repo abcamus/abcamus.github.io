@@ -1,0 +1,40 @@
+---
+layout: post
+title:  "ACE-Lite I/O coherency分析"
+author: Kai Qiu
+date:   2017-06-26 21:22:37 +0800
+categories: 嵌入式开发
+tags: ARM ACE-Lite
+excerpt: 通常情景分析了解ACE工作原理
+---
+
+* menu
+{:toc}
+
+> 
+
+ACE-Lite I/O Coherency分析
+
+![2017-06-27 00-33-07屏幕截图.png](https://ooo.0o0.ooo/2017/06/27/5951375d46b5e.png)
+
+整体的框架如图所示，ACE-Lite口实现了ACE协议的子集，包含三个部分：
+
+1. Non-shared
+2. Non-cached
+3. Cache Maintenance
+
+![屏幕快照 2017-06-27 08.18.49.png](https://ooo.0o0.ooo/2017/06/27/5951a486a5438.png)
+
+
+
+情景分析：
+
+假设现在ACE口上有ARM core，ACE Lite一路有USB，分两种情况，ACE读和ACE写
+
+### ACE读，I/O设备写
+
+现在usb cacaheable写了一笔数据进ddr，然后cpu读了一次，这个时候cache中有对应数据的缓存。然后usb又通过dma往同样的地址写了一笔数据，这个时候ACE-Lite 发送MakeInvalid transaction告诉ACE说这笔缓存的数据需要invalidate，这样下次cpu读同样地址数据的时候就从ddr去读了，这样就保证了读数据的一致性。
+
+### ACE写，I/O设备读
+
+CPU写一笔setup包，数据进入dcache，然后usb读对应的虚拟地址发送请求，这个时候ACE-Lite发起ReadOnce transaction，发现cache中有数据，那么直接从cache中把数据snoop过来；如果cache是dirty的，那么ACE还会把数据写入ddr（clean cache）。
