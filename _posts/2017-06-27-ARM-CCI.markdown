@@ -11,7 +11,7 @@ excerpt: 通常情景分析了解ACE工作原理
 * menu
 {:toc}
 
-> 
+> 为了减轻flush cache带来的开销，arm引入了CCI这个硬件模块，通过ACE协议来保证数据的一致性。
 
 ACE-Lite I/O Coherency分析
 
