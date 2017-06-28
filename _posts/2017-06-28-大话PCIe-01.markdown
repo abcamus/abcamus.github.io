@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "大话PCIe: 发展与应用"
+title:  "PCIe发展与应用"
 author: Kai Qiu
 date:   2017-06-28 21:22:37 +0800
 categories: 嵌入式开发
