@@ -6,6 +6,7 @@ date:   2017-06-28 21:22:37 +0800
 categories: 嵌入式开发
 tags: PCIe
 excerpt: 认识PCIe
+topics: 大话PCIe
 ---
 
 * menu
@@ -29,7 +30,7 @@ PCIe规范是Intel提出来的总线接口标准，旨在统一外设接口（�
 
 ## 三、PCIe常见设备
 
-当下基于PCIe接口的设备有很多，上jd一搜就能发现各种设备都有：
+当下基于PCIe接口的设备有很多，上jd一搜看到主要有以下几种：
 
 存储设备有 三星(SAMSUNG) 960 EVO 250G M.2 NVMe 固态硬盘、英特尔（Intel）600P系列 128G M.2 2280接口固态硬盘 .etc
 
