@@ -53,4 +53,5 @@ excerpt: 每个PCIe设备都位于一个总线架构中（RC、SW和EP共同组�
 > 下篇预告：PCIe地址空间与tlp
 
 [1] PCI_Express_Base_Specification_Revision_4.0.Ver.0.3
+
 [2] DWC_pcie_reference
