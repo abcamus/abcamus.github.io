@@ -1,0 +1,56 @@
+---
+layout: post
+title:  "PCIe总线结构与配置空间"
+author: Kai Qiu
+date:   2017-06-29 21:22:37 +0800
+categories: 嵌入式开发
+tags: PCIe
+topics: 大话PCIe
+excerpt: 每个PCIe设备都位于一个总线架构中（RC、SW和EP共同组成了一个PCIe网络），如何组织这些设备，以及如何访问这些设备呢？
+---
+
+* menu
+{:toc}
+
+> 把有限的精力花在真正有价值的事情上。
+
+## 一、网络拓扑与设备端口
+
+上一篇已经讲到构成PCIe网络的三个角色：RC、SW和EP。其实这整个网络给人感觉就像乐高积木，上一级设备的下游端口接下级设备的上游端口，然后端口不但能看出链接状态，还提供包传输的链路。
+
+这里有两个常见的概念：DSP（Down Stream Port）和USP（Upper Stream Port）。对每个功能设备来讲，用来连接上下游设备的端口统称为DSP或者USP。
+
+整个网络的拓扑如图<sup>[1]</sup>所示
+
+![屏幕快照 2017-06-29 23.05.43.png](https://ooo.0o0.ooo/2017/06/29/59551778d8a07.png)
+
+
+上面有这么多的设备，自然而然想到的第一个问题是：怎么来标记各个设备呢？答案是通过总线号和设备号。
+
+举例如下：第一级RC所在的层级，定义为Bus 0，这个没有什么问题。那么下一级bus怎么定义的呢？通过bridge或者switch设备来定义，每个bridge或者switch代表一级bus。对于同样连接在RC上的bridge和switch，根据深度优先搜索来定义bus，譬如上图中，如果最下面的switch是RC上的第一个device，那么这个switch就代表了Bus 1。连在这个switch DSP上的设备都属于Bus 1。
+
+关于总线，设备和功能：PCIe规范规定，一个PCIe设备网络中，最多支持256级Bus，每条Bus下面可以挂32个device，每个device最多拥有8个function。如果一个device存在，那么必须存在function 0。这样的话，通过Bus、Device和Function就能唯一匹配到特定的功能设备。
+
+## 二、配置空间
+
+上一节说到定义Bus的问题，根据深度优先搜索，我们知道了应该给每一级bridge分配的总线号，具体到操作上讲，其实就是往对应设备（一定是bridge或者switch）的配置空间的0x18位置写总线号。配置空间是针对function而言的，每个function都有其配置空间（说白了其实就是一堆配置寄存器）。
+
+如果一个device是bridge或者switch，那么其function的配置空间<sup>[2]</sup>是这个样子的。
+
+![屏幕快照 2017-06-30 00.12.32.png](https://ooo.0o0.ooo/2017/06/30/595527060d2fe.png)
+
+每个PCIe设备下的function都要实现4KB的配置空间，从设备内部地址0开始，注意这里是在设备内部的。因此访问PCIe配置空间不能通过直接读写系统总线实现，因为系统总线上看到的是CPU地址。在PCIe标准中，访问PCIe配置空间的是cfg tlp(configuration transaction layer packet)。cfg tlp又分为type 0和type 1，type 1用来访问PCIe桥，type 0访问端点设备。综上所述，要访问SW的配置空间，就要发起cfg type1 tlp；要访问EP配置空间，就要发起cfg type0 tlp。每种cfg tlp又分read(rd)和write(wr)，排列组合一下，cfg tlp就有四种形式：type 0 rd、type 0 wr、type 1 rd、type 1 wr。
+
+综合地址编码和配置空间的介绍，这里给出每个function在PCI域的配置基址：cfg_base[27:20] = Bus Number，cfg_base[19:15] = Device Number，cfg_base[14:12] = Function Number。
+
+这里遗留了两个问题：
+
+1. 既然PCIe设备配置空间是内部的，和外部总线地址有什么关系呢？每个function在PCI域的配置地址是怎么被应用的？
+2. 如何发起cfg type0 tlp或者cfg tpe1 tlp？
+
+这两个问题留待下篇文章解决吧。
+
+> 下篇预告：PCIe地址空间与tlp
+
+[1] PCI_Express_Base_Specification_Revision_4.0.Ver.0.3
+[2] DWC_pcie_reference
