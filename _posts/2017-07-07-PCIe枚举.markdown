@@ -1,0 +1,41 @@
+---
+layout: post
+title:  "PCIe设备枚举"
+author: Kai Qiu
+date:   2017-07-06 21:22:37 +0800
+categories: 嵌入式开发
+tags: PCIe
+excerpt: PCIe设备的枚举过程应该是第一个将TLP，地址空间等知识串联起来的应用，通过了解和实现枚举代码，知道设备是怎么管理的，设备和设备之间是如何通信的。
+---
+
+* menu
+{:toc}
+
+> 人的一生是一个不断认识自我，发展自我的过程。
+
+认识PCIe设备的枚举过程需要以下知识：
+
+1. 拓扑结构
+2. 设备的表征及配置空间的访问
+3. BAR空间的含义和访问
+
+其中第1/2点在[总线结构与配置空间](http://blog.csdn.net/abcamus/article/details/73929507)已经介绍过了，第3点在[BAR空间和TLP](http://blog.csdn.net/abcamus/article/details/74157026)也已经进行过详细的介绍，可以说是万事具备。接下来涉及的过程有以下几个：
+
+1. 根据深度优先搜索进行设备总线号的分配
+2. BAR空间的映射和简单访问测试
+
+上面就是枚举过程中做的事情了。
+
+## 一、基于深度优先搜索的总线号分配
+
+每一个switch代表一级bus，挂在该switch下的所有设备（包括SW和EP）都属于这级bus。
+
+SW配置空间中的总线号有Primary Bus、Secondary Bus和Subordinate Bus。含义如下
+
+总线号 | 含义
+-- | --
+Primary Bus | 当前级别的总线号，从该设备往下的所有设备都属于primary bus
+Secondary Bus | 下一级总线号
+Subordinate Bus | 从当前级别总线开始最远端的总线号
+
+现在假设
