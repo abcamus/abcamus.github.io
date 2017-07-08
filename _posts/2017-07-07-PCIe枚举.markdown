@@ -5,6 +5,7 @@ author: Kai Qiu
 date:   2017-07-06 21:22:37 +0800
 categories: 嵌入式开发
 tags: PCIe
+topics: 大话PCIe
 excerpt: PCIe设备的枚举过程应该是第一个将TLP，地址空间等知识串联起来的应用，通过了解和实现枚举代码，知道设备是怎么管理的，设备和设备之间是如何通信的。
 ---
 
