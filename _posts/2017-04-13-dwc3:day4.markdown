@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "dwc3 day4--debug"
+title:  "验证过程调试"
 author: Kai Qiu
 date:   2017-04-13 21:22:37 +0800
 categories: 嵌入式开发

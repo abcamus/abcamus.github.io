@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "dwc3 day3--platform"
+title:  "验证软件框架"
 author: Kai Qiu
 date:   2017-04-06 22:22:37 +0800
 categories: 嵌入式开发

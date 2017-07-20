@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "dwc3 day1--motivation"
+title:  "7天完成usb3.0控制器验证"
 author: Kai Qiu
 date:   2017-04-04 09:53:37 +0800
 categories: 嵌入式开发

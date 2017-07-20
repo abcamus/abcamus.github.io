@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "dwc3 day6--conclusion"
+title:  "验证过程总结"
 author: Kai Qiu
 date:   2017-04-17 21:22:37 +0800
 categories: 嵌入式开发

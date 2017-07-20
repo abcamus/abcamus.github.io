@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "dwc3 day5--class spec"
+title:  "bulk传输验证"
 author: Kai Qiu
 date:   2017-04-15 22:52:37 +0800
 categories: 嵌入式开发
