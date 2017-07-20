@@ -5,7 +5,7 @@ author: Kai Qiu
 date:   2017-04-15 22:52:37 +0800
 categories: 嵌入式开发
 tags: usb3
-topics: dwc3验证套件
+topics: usb2.0开发指南 
 excerpt: 添加usb类协议支持
 ---
 

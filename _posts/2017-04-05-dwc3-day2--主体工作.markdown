@@ -5,7 +5,7 @@ author: Kai Qiu
 date:   2017-04-05 21:12:37 +0800
 categories: 嵌入式开发
 tags: dwc3 usb
-topics: dwc3验证套件
+topics: usb3.0开发指南
 excerpt: 记录主要工作，把结构性的知识也记录在这里
 ---
 

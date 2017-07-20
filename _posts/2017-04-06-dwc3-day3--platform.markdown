@@ -5,7 +5,7 @@ author: Kai Qiu
 date:   2017-04-06 22:22:37 +0800
 categories: 嵌入式开发
 tags: usb3.0
-topics: dwc3验证套件
+topics: usb3.0开发指南
 excerpt: 介绍如何把验证套件移植到具体的平台上
 ---
 

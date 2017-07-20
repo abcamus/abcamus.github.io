@@ -5,7 +5,7 @@ author: Kai Qiu
 date:   2017-04-04 09:53:37 +0800
 categories: 嵌入式开发
 tags: usb3.0
-topics: dwc3验证套件
+topics: usb3.0开发指南
 excerpt: 为了要验证usb3.0控制器的逻辑功能，考虑搭建一个通用的验证环境。
 ---
 

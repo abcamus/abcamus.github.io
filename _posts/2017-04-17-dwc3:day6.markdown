@@ -5,7 +5,7 @@ author: Kai Qiu
 date:   2017-04-17 21:22:37 +0800
 categories: 嵌入式开发
 tags: usb3
-topics: dwc3验证套件
+topics: usb3.0开发指南
 excerpt: usb3.0从链路层到协议层都调试通过了，做个小结。
 ---
 
