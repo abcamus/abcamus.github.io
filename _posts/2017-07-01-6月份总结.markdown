@@ -3,15 +3,13 @@ layout: post
 title:  "6月份总结"
 author: Kai Qiu
 date:   2017-07-01 21:22:37 +0800
-categories: 总结
+categories: 读书随笔
 tags: 生活
 excerpt: 6月份工作生活总结
 ---
 
 * menu
 {:toc}
-
-> 
 
 新的工作满3个月了，这一个月都在做PCIe接口，RC基本功能（包括枚举，mem/io req .etc）通了。谈不上多激动吧，感觉和曾经的节奏差不多，只是从来没有接触过，还有关于多核cache一致性的问题，对着文档检查了好久，也是工作起来了。
 

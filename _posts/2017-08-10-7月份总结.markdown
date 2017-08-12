@@ -3,7 +3,7 @@ layout: post
 title:  "7月份总结"
 author: Kai Qiu
 date:   2017-08-10 21:22:37 +0800
-categories: 总结
+categories: 读书随笔
 tags: 生活
 excerpt: 7月份工作生活总结
 ---
