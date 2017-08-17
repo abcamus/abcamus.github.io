@@ -1,0 +1,156 @@
+---
+layout: post
+title:  "FreeRTOS任务调度机制"
+author: Kai Qiu
+date:   2017-08-18 21:22:37 +0800
+categories: 嵌入式开发
+tags: FreeRTOS 任务调度
+excerpt: 最近针对一款多核ARM处理器移植了FreeRTOS-v9.0.0，写这篇文章对其中的任务调度机制进行系统的阐述。
+---
+
+* menu
+{:toc}
+
+> 人的品德都反应在自律上 
+
+这篇文章不介绍FreeRTOS移植，只是最近针对多核ARM Cortex系列平台做了移植后的一篇总结研究文章。所以不涉及对FreeRTOS整体的介绍，而只是分析任务调度这一块的机制。对应的Demo参考自CORTEX_A9_Zynq_ZC702。
+
+## 一、触发任务调度的两种机制
+
+1. taskYIELD()
+	这种机制其实是通过ARM swi 异常触发task context switch。
+2. IRQ handler
+   通过tick中断，来检测是否需要进行任务切换。
+
+最终两者任务切换的方式过程都是一样的，以taskYIELD()为例，代码如下：
+
+```
+/******************************************************************************
+ * SVC handler is used to start the scheduler.
+ *****************************************************************************/
+.align 4
+.type FreeRTOS_SWI_Handler, %function
+FreeRTOS_SWI_Handler:
+	/* Save the context of the current task and select a new task to run. */
+	portSAVE_CONTEXT
+	LDR R0, vTaskSwitchContextConst
+	BLX	R0
+	portRESTORE_CONTEXT
+```
+
+ps.这是一个weak函数，可以自行重定义。
+
+## 二、任务调度过程
+
+总的来说，任务调度包含三个部分：保存当前任务现场；选择下一个执行的任务；恢复任务现场。
+
+FreeRTOS保护的现场都通过system模式进行访问，针对每个任务，在其创建的时候都会在栈内开辟一段固定大小的空间用来保存之前任务的上下文（包括CPU状态，运行栈，内部寄存器）。
+
+为什么是system mode? 因为system mode和usr mode看到的是一份寄存器内容。如下图所示
+
+![2017-08-17 08-48-09屏幕截图.png](https://i.loli.net/2017/08/17/5995b1644d964.png)
+
+能反应usr模式下的运行状态，又不会影响其他特权模式。
+
+而且system mode会进到PL1 state
+
+![2017-08-17 08-57-17屏幕截图.png](https://i.loli.net/2017/08/17/5995b20984f17.png)
+
+### 2.1 恢复现场（通常也是触发执行第一个task的方式）
+
+```
+.macro portRESTORE_CONTEXT
+
+	/* Set the SP to point to the stack of the task being restored. */
+	LDR		R0, pxCurrentTCBConst  // 当前要恢复的任务对应的TCB
+	LDR		R1, [R0]
+	LDR		SP, [R1]    // TCB的第一个成员(pxTopOfStack)，创建任务的时候根据A系列上下文内容计算得到，恢复的时候通过这个SP来发现保存的上下文，注意：这个时候是system mode。
+
+	// 下面就是需要恢复的上下文，和创建任务时保存的顺序相反（push/pop）。
+	/* Is there a floating point context to restore?  If the restored
+	ulPortTaskHasFPUContext is zero then no. */
+	LDR		R0, ulPortTaskHasFPUContextConst
+	POP		{R1}
+	STR		R1, [R0]
+	CMP		R1, #0
+
+	/* Restore the floating point context, if any. */
+	POPNE 	{R0}
+	VPOPNE	{D16-D31}
+	VPOPNE	{D0-D15}
+	VMSRNE  FPSCR, R0
+
+	/* Restore the critical section nesting depth. */
+	LDR		R0, ulCriticalNestingConst
+	POP		{R1}
+	STR		R1, [R0]
+
+	/* Ensure the priority mask is correct for the critical nesting depth. */
+	LDR		R2, ulICCPMRConst
+	LDR		R2, [R2]
+	CMP		R1, #0
+	MOVEQ	R4, #255
+	LDRNE	R4, ulMaxAPIPriorityMaskConst
+	LDRNE	R4, [R4]
+	STR		R4, [R2]
+
+	/* Restore all system mode registers other than the SP (which is already
+	being used). */
+	POP		{R0-R12, R14}
+
+	/* Return to the task code, loading CPSR on the way. */
+	RFEIA	sp!          // 执行完这条指定之后system mode下的sp重新指向了真正的栈顶，然后CPU回到任务lr指定的位置（初始值为任务对应的函数入口）。
+
+	.endm
+```
+
+在创建完任务，调用vTaskStartScheduler()之后就是通过这个宏进到第一个任务的。
+
+### 2.2 保存现场
+
+和恢复现场相比较，保存现场就是要把各种状态放到SP（pxTopOfStack）对应的地方上。代码如下：
+
+```
+.macro portSAVE_CONTEXT
+
+	/* Save the LR and SPSR onto the system mode stack before switching to
+	system mode to save the remaining system mode registers. */
+	SRSDB	sp!, #SYS_MODE   // 先把lr和spsr入栈到system mode的栈中
+	CPS		#SYS_MODE        // 切到system mode
+	PUSH	{R0-R12, R14}    // 和恢复现场的顺序对应，寄存器入栈
+
+	/* Push the critical nesting count. */
+	LDR		R2, ulCriticalNestingConst
+	LDR		R1, [R2]
+	PUSH	{R1}
+
+	/* Does the task have a floating point context that needs saving?  If
+	ulPortTaskHasFPUContext is 0 then no. */
+	LDR		R2, ulPortTaskHasFPUContextConst
+	LDR		R3, [R2]
+	CMP		R3, #0
+
+	/* Save the floating point context, if any. */
+	FMRXNE  R1,  FPSCR
+	VPUSHNE {D0-D15}
+	VPUSHNE	{D16-D31}
+	PUSHNE	{R1}
+
+	/* Save ulPortTaskHasFPUContext itself. */
+	PUSH	{R3}
+
+	/* Save the stack pointer in the TCB. */
+	LDR		R0, pxCurrentTCBConst
+	LDR		R1, [R0]
+	STR		SP, [R1]            // 这个时候的sp还是system mode下的sp，所以上下文内容都是在system mode下进行保存和切换的。
+
+	.endm
+```
+
+将save context和restore context结合起来看，任务上下文的切换始终发生在system mode，即能改变user mode下的运行栈，又不会破坏其他特权级别（诸如svc，irq，fiq，hyp）下的运行栈。是一个实质上介于特权级别和用户级别的一个中间层级。
+
+### 2.3 任务切换
+
+任务切换方法由vTaskSwitchContext提供，负责从当前的ready list中选择一个优先级最高的任务。保存到pxCurrentTCB中。
+
+至此，整个FreeRTOS的调度程序就工作起来了。
