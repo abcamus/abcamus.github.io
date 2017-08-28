@@ -59,6 +59,6 @@ https://developer.arm.com/products/system-ip/system-controllers/interrupt-contro
 
 每一个具有MSI capability的device都有一组对应的寄存器来表示MSI能力。
 
-MSI Control Register中的multiple message capable（三个比特，假设值为x）表示MSI可产生多少message，计算方法为2的x此方。另外有三个比特multiple message enable，和message capable对应，表示实际使能了多少message。还有一个MSI data寄存器和MSI address寄存器，要结合中断控制器配置，表示具体的message编码和message的目标地址。
+MSI Control Register中的multiple message capable（三个比特，假设值为x，x属于[0, 5]）表示MSI可产生多少message，计算方法为2的x次方。另外有三个比特multiple message enable，和message capable对应，表示实际使能了多少message。还有一个MSI data寄存器和MSI address寄存器，要结合中断控制器配置，表示具体的message编码和message的目标地址。
 
 到这篇文章为止涉及的知识已经能够让PCIe工作起来了，接下来开始写些Linux PCIe驱动相关的文章。
