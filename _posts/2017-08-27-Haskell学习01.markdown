@@ -17,7 +17,7 @@ excerpt: 学习Haskell的第一课
 
 ## 一、TypeClass
 
-Haskell是一门纯粹的、强类型函数式编程语言，每个函数及其参数都有指定的变量，如果没有显示指定，编译器也会做type inference。TypeClass用来范化类型，这是有实际需求的。譬如head函数，把一个list中的第一个元素取出来，但是第一个元素有可能是整数，有可能是字符串，也有可能是另一个list，TypeClass指定某些类型对同一个class，来实现模板化的操作（只用一个接口即可）。PS. Haskell类型名字都以大写字母开头。
+Haskell是一门纯粹的、强类型函数式编程语言，每个函数及其参数都有指定的变量类型，如果没有显示指定，编译器也会做type inference。TypeClass用来范化类型，这是有实际需求的。譬如head函数，把一个list中的第一个元素取出来，但是第一个元素有可能是整数，有可能是字符串，也有可能是另一个list，TypeClass指定某些类型对同一个class，来实现模板化的操作（只用一个接口即可）。PS. Haskell类型名字都以大写字母开头。
 
 ### TypeClass的种类
 
