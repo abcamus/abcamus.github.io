@@ -154,3 +154,221 @@ FreeRTOS保护的现场都通过system模式进行访问，针对每个任务，
 任务切换方法由vTaskSwitchContext提供，负责从当前的ready list中选择一个优先级最高的任务。保存到pxCurrentTCB中。
 
 至此，整个FreeRTOS的调度程序就工作起来了。
+
+## 三、Tick Handler
+
+前面讲到，触发FreeRTOS调度的有两种机制，一是swi handler，二是irq handler，准确的讲是tick handler。
+
+一般针对每一个平台的port，都会实现一个对应的FreeRTOS_Tick_Handler，以Cortex A9为例，其位于Source/portable/GCC/ARM_CA9/port.c中。
+
+```
+void FreeRTOS_Tick_Handler( void )
+{
+	/* Set interrupt mask before altering scheduler structures.   The tick
+	handler runs at the lowest priority, so interrupts cannot already be masked,
+	so there is no need to save and restore the current mask value.  It is
+	necessary to turn off interrupts in the CPU itself while the ICCPMR is being
+	updated. */
+	portCPU_IRQ_DISABLE();
+	portICCPMR_PRIORITY_MASK_REGISTER = ( uint32_t ) ( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT );
+	__asm volatile (	"dsb		\n"
+						"isb		\n" );
+	portCPU_IRQ_ENABLE();
+
+	/* Increment the RTOS tick. */
+	if( xTaskIncrementTick() != pdFALSE )
+	{
+		ulPortYieldRequired = pdTRUE;
+	}
+
+	/* Ensure all interrupt priorities are active again. */
+	portCLEAR_INTERRUPT_MASK();
+	configCLEAR_TICK_INTERRUPT();
+}
+```
+
+里面主要就是一个函数：xTaskIncrementTick()。这个函数位于Source/tasks.c。
+
+```
+BaseType_t xTaskIncrementTick( void )
+{
+TCB_t * pxTCB;
+TickType_t xItemValue;
+BaseType_t xSwitchRequired = pdFALSE;
+
+	/* Called by the portable layer each time a tick interrupt occurs.
+	Increments the tick then checks to see if the new tick value will cause any
+	tasks to be unblocked. */
+	traceTASK_INCREMENT_TICK( xTickCount );
+	if( uxSchedulerSuspended == ( UBaseType_t ) pdFALSE )
+	{
+		/* Minor optimisation.  The tick count cannot change in this
+		block. */
+		const TickType_t xConstTickCount = xTickCount + 1;
+
+		/* Increment the RTOS tick, switching the delayed and overflowed
+		delayed lists if it wraps to 0. */
+		xTickCount = xConstTickCount;
+
+		if( xConstTickCount == ( TickType_t ) 0U )
+		{
+			taskSWITCH_DELAYED_LISTS();
+		}
+		else
+		{
+			mtCOVERAGE_TEST_MARKER();
+		}
+
+		/* See if this tick has made a timeout expire.  Tasks are stored in
+		the	queue in the order of their wake time - meaning once one task
+		has been found whose block time has not expired there is no need to
+		look any further down the list. */
+		if( xConstTickCount >= xNextTaskUnblockTime )
+		{
+			for( ;; )
+			{
+				if( listLIST_IS_EMPTY( pxDelayedTaskList ) != pdFALSE )
+				{
+					/* The delayed list is empty.  Set xNextTaskUnblockTime
+					to the maximum possible value so it is extremely
+					unlikely that the
+					if( xTickCount >= xNextTaskUnblockTime ) test will pass
+					next time through. */
+					xNextTaskUnblockTime = portMAX_DELAY; /*lint !e961 MISRA exception as the casts are only redundant for some ports. */
+					break;
+				}
+				else
+				{
+					/* The delayed list is not empty, get the value of the
+					item at the head of the delayed list.  This is the time
+					at which the task at the head of the delayed list must
+					be removed from the Blocked state. */
+					pxTCB = ( TCB_t * ) listGET_OWNER_OF_HEAD_ENTRY( pxDelayedTaskList );
+					xItemValue = listGET_LIST_ITEM_VALUE( &( pxTCB->xStateListItem ) );
+
+					if( xConstTickCount < xItemValue )
+					{
+						/* It is not time to unblock this item yet, but the
+						item value is the time at which the task at the head
+						of the blocked list must be removed from the Blocked
+						state -	so record the item value in
+						xNextTaskUnblockTime. */
+						xNextTaskUnblockTime = xItemValue;
+						break;
+					}
+					else
+					{
+						mtCOVERAGE_TEST_MARKER();
+					}
+
+					/* It is time to remove the item from the Blocked state. */
+					( void ) uxListRemove( &( pxTCB->xStateListItem ) );
+
+					/* Is the task waiting on an event also?  If so remove
+					it from the event list. */
+					if( listLIST_ITEM_CONTAINER( &( pxTCB->xEventListItem ) ) != NULL )
+					{
+						( void ) uxListRemove( &( pxTCB->xEventListItem ) );
+					}
+					else
+					{
+						mtCOVERAGE_TEST_MARKER();
+					}
+
+					/* Place the unblocked task into the appropriate ready
+					list. */
+					prvAddTaskToReadyList( pxTCB );
+
+					/* A task being unblocked cannot cause an immediate
+					context switch if preemption is turned off. */
+					#if (  configUSE_PREEMPTION == 1 )
+					{
+						/* Preemption is on, but a context switch should
+						only be performed if the unblocked task has a
+						priority that is equal to or higher than the
+						currently executing task. */
+						if( pxTCB->uxPriority >= pxCurrentTCB->uxPriority )
+						{
+							xSwitchRequired = pdTRUE;
+						}
+						else
+						{
+							mtCOVERAGE_TEST_MARKER();
+						}
+					}
+					#endif /* configUSE_PREEMPTION */
+				}
+			}
+		}
+
+		/* Tasks of equal priority to the currently running task will share
+		processing time (time slice) if preemption is on, and the application
+		writer has not explicitly turned time slicing off. */
+		#if ( ( configUSE_PREEMPTION == 1 ) && ( configUSE_TIME_SLICING == 1 ) )
+		{
+			if( listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ) > ( UBaseType_t ) 1 )
+			{
+				xSwitchRequired = pdTRUE;
+			}
+			else
+			{
+				mtCOVERAGE_TEST_MARKER();
+			}
+		}
+		#endif /* ( ( configUSE_PREEMPTION == 1 ) && ( configUSE_TIME_SLICING == 1 ) ) */
+
+		#if ( configUSE_TICK_HOOK == 1 )
+		{
+			/* Guard against the tick hook being called when the pended tick
+			count is being unwound (when the scheduler is being unlocked). */
+			if( uxPendedTicks == ( UBaseType_t ) 0U )
+			{
+				vApplicationTickHook();
+			}
+			else
+			{
+				mtCOVERAGE_TEST_MARKER();
+			}
+		}
+		#endif /* configUSE_TICK_HOOK */
+	}
+	else
+	{
+		++uxPendedTicks;
+
+		/* The tick hook gets called at regular intervals, even if the
+		scheduler is locked. */
+		#if ( configUSE_TICK_HOOK == 1 )
+		{
+			vApplicationTickHook();
+		}
+		#endif
+	}
+
+	#if ( configUSE_PREEMPTION == 1 )
+	{
+		if( xYieldPending != pdFALSE )
+		{
+			xSwitchRequired = pdTRUE;
+		}
+		else
+		{
+			mtCOVERAGE_TEST_MARKER();
+		}
+	}
+	#endif /* configUSE_PREEMPTION */
+
+	return xSwitchRequired;
+}
+```
+
+总的来讲，xTaskIncrementTick负责更新block list和ready list。然后设置标志位xSwitchRequired，告诉调度器是否需要进行任务切换。
+
+整个函数分为两个分支： uxSchedulerSuspended == ( UBaseType_t ) pdFALSE 和 uxSchedulerSuspended ！= ( UBaseType_t ) pdFALSE 。
+
+如果此时scheduler已经挂起的话，什么都不做。否则，做如下动作：
+
+1. 判断当前tick是否大于xNextTaskUnblockTime（初始值为0），如果大于，则需要进一步判断pxDelayedTaskList中的哪些task需要进入到readyList。
+2. 取出pxDelayedTaskList中的最小unblock time（xItemValue）的任务，如果当前tick小于该最小值（表示没有任务满足unblock需求），那么设置xNextTaskUnblockTime为xItemValue，然后退出。
+3. 否则的话，通过`( void ) uxListRemove( &( pxTCB->xStateListItem ) );`将该task从block状态移除。紧接着判断是不是在等待event，如果是的话，也从event list移除。
+4. 把该任务加到readyList中去。等待调度。判断是否支持preemption，如果支持的话，置xSwitchRequired。
