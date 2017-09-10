@@ -2,7 +2,7 @@
 layout: post
 title:  "8月份总结"
 author: Kai Qiu
-date:   2017-09-10 21:22:37 +0800
+date:   2017-09-09 21:22:37 +0800
 categories: 读书随笔
 tags: 总结
 excerpt: 2017年8月份生活工作总结
