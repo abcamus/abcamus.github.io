@@ -1,0 +1,146 @@
+---
+layout: post
+title:  "PCIe主控驱动"
+author: Kai Qiu
+date:   2017-09-16 21:22:37 +0800
+categories: 嵌入式开发
+tags: PCIe host
+topics: 大话PCIe
+excerpt: 根据pcie-xilinx.c分析如何添加PCIe host driver
+---
+
+* menu
+{:toc}
+
+最新的4.12内核中对pci host driver进行一些划分，把基于designware IP的主控驱动放到drivers/pci/dwc目录下去了。如果是基于老的kernel开发，想要移植新版的内核的话，要注意，同时多了designware ep驱动框架。
+
+非designware的主控驱动还是位于host目录下，譬如pcie-xilinx.c。
+
+下面就以xilinx pcie主控驱动为例来介绍如何添加自己的host driver。
+
+## 一、probe和设备树
+
+现在的设备驱动大部分都是通过device tree来给定平台信息的，有了一套框架，其实写驱动就是搭积木一样，把槽位卡准了就行了，具体要如何操作呢？
+
+这里先放一个device tree的模板。
+
+```c
+Zynq:
+	pci_express: axi-pcie@50000000 {
+		#address-cells = <3>;
+		#size-cells = <2>;
+		#interrupt-cells = <1>;
+		compatible = "xlnx,axi-pcie-host-1.00.a";
+		reg = < 0x50000000 0x1000000 >;
+		device_type = "pci";
+		interrupts = < 0 52 4 >;
+		interrupt-map-mask = <0 0 0 7>;
+		interrupt-map = <0 0 0 1 &pcie_intc 1>,
+				<0 0 0 2 &pcie_intc 2>,
+				<0 0 0 3 &pcie_intc 3>,
+				<0 0 0 4 &pcie_intc 4>;
+		ranges = < 0x02000000 0 0x60000000 0x60000000 0 0x10000000 >;
+
+		pcie_intc: interrupt-controller {
+			interrupt-controller;
+			#address-cells = <0>;
+			#interrupt-cells = <1>;
+		};
+	};
+```
+
+首先定义好platform_driver。
+
+``` c
+static struct platform_driver xilinx_pcie_driver = {
+	.driver = {
+		.name = "xilinx-pcie",
+		.of_match_table = xilinx_pcie_of_match,
+		.suppress_bind_attrs = true,
+	},
+	.probe = xilinx_pcie_probe,
+};
+builtin_platform_driver(xilinx_pcie_driver);
+```
+
+这里有一个`of_match_table`字段，是这么定义的：
+
+```c
+static struct of_device_id xilinx_pcie_of_match[] = {
+	{ .compatible = "xlnx,axi-pcie-host-1.00.a", },
+	{}
+};
+```
+
+这里的compatible信息是"xlnx,axi-pcie-host-1.00.a"，和device tree中的`compatible = "xlnx,axi-pcie-host-1.00.a";`是对应的。系统在启动的时候会根据这个compatible字段来probe驱动，这里知道这个就能进到我们的probe函数了。
+
+## 二、初始化host
+
+要知道进入probe就说明了以下几个事实：
+
+- struct platform_device结构体已经生成，并且已经和内核绑定好了（通过device结构体）。
+- 设备树节点已经获取到，而且保存在了device结构体中。
+
+所以，进入probe后，先先定义一个`struct xilinx_pcie_port`结构体，用来保存作为Root Port需要的信息，不仅kernel自己要知道device信息，我们自己也要知道，这样的话还能通过相关的结构和kernel进行交互。
+
+首先，获取最重要的device对象，后续的设备操作都是和这个device结构体绑定的。
+
+```c
+port->dev = dev
+```
+
+其次，parse device tree。
+
+```c
+err = xilinx_pcie_parse_dt(port);
+if (err) {
+	dev_err(dev, "Parsing DT failed\n");
+	return err;
+}
+```
+
+各种device tree接口如下：
+
+- of_get_property(node, "device_type", NULL);
+- of_address_to_resource(node, 0, &regs);
+- irq_of_parse_and_map(node, 0);
+
+> 严格上讲，这个接口并不全是直接操作device tree的接口，详细的可以参考device tree相关文档。
+
+## 三、初始化Root Port
+
+```c
+xilinx_pcie_init_port(port);
+```
+
+链路训练，清中断，使能中断。
+
+## 四、获取总线资源
+
+包括总线range（因为是Root Port，所以从0～255），获取device tree中定义的range，生成相应的resource。然后通过`devm_request_pci_bus_resources(dev, &res);`向内核申请。
+
+## 五、生成pci bus，枚举生成PCI设备树
+
+```c
+bus = pci_create_root_bus(dev, 0, &xilinx_pcie_ops, port, &res);
+	if (!bus) {
+		err = -ENOMEM;
+		goto error;
+	}
+
+#ifdef CONFIG_PCI_MSI
+	xilinx_pcie_msi_chip.dev = dev;
+	bus->msi = &xilinx_pcie_msi_chip;
+#endif
+    // 扫描下级总线，然后申请内核资源
+	pci_scan_child_bus(bus);
+	pci_assign_unassigned_bus_resources(bus);
+#ifndef CONFIG_MICROBLAZE
+	pci_fixup_irqs(pci_common_swizzle, of_irq_parse_and_map_pci);
+#endif
+	list_for_each_entry(child, &bus->children, node)
+		pcie_bus_configure_settings(child);
+    // 扫描PCIe设备
+	pci_bus_add_devices(bus);
+	return 0;
+```
