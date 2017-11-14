@@ -1,0 +1,99 @@
+---
+layout: post
+title:  "haskell基础课：类型系统解读"
+author: Kai Qiu
+date:   2017-11-12 21:22:37 +0800
+categories: 读书随笔
+tags: haskell
+excerpt: 关于haskell类型系统的解读
+---
+
+* menu
+{:toc}
+
+最近忙成狗了，吭哧吭哧终于把家搬完了，以后就长久的住在新家了，由于刚搬家，网线还没有接，又过了一个星期家里没网的日子。这一段时间又没时间好好整理haskell。甚是遗憾。从上次haskell实现Graham扫描算法到现在已经三周有余，这次分析一下haskell类型系统。
+
+首先回忆一下C语言是怎么构造新类型的。
+
+```c
+struct Test {
+    int index;
+#define NAME_LEN 32
+    char name[NAME_LEN];
+    void (*get_name)(struct Test *);
+};
+```
+
+这就是典型的C语言构造新类型的方法，即所谓的结构体。诸如此类的还有枚举类型、联合体。结构体定义了一个类型名字，成员都有其名字，并且根据名字访问到各个成员。
+
+## 一、代数数据类型(algebraic data type)与类型构造子(data constructor)
+
+定义类型： data TypeName = TypeConstructor [param] [| TypeConstructor [param]]
+
+其中param可有可无，但是要注意如果param存在，那么其肯定是一种类型。比如`data Test = Test Int`，表示传给一个Int类型的参数给类型构造子Test，这时候在ghci中执行`:t Test`可以看到
+
+```
+*Main> :t Test
+Test :: Int -> Test
+```
+
+还要注意第一个Test和第二个Test没有任何联系，第一个Test只是表示该类型名字叫Test，在代码中实际使用的是第二个Test（也就是类型构造子）。
+
+## 二、类型解构与模式匹配
+
+在前面实现Graham扫描算法的例子中，我们使用了很多的函数，基本上都是通过模式匹配实现的。再举个例子，譬如求和函数：
+
+```
+sum (x:xs) = x + sum xs
+sum [] = 0
+```
+
+在第一次看到行如(x:xs)的时候，可能会有疑问--为什么有个括号？其实(x:xs)中的冒号(:)是一个类型构造子。在ghci中输入`:t (:)`可以看到
+
+```
+*Main> :t (:)
+(:) :: a -> [a] -> [a]
+```
+
+(:)就是用来构造列表的，而形如[1,2,3]的构造方式其实等价于(1:(2:(3:[])))。
+
+说到这里，其实基本上就清楚了，模式匹配其实就是在对类型进行解构，使用的方法就是通过类型构造子的规定按照顺序进行参数匹配。
+
+现在对前面定义的Test类型进行解构，在ghci中输入如下：
+
+```
+*Main> data Test=Test Int
+*Main> getTest (Test a)=a
+*Main> getTest (Test 10)
+10
+```
+
+## 三、类型匹配
+
+通过模式匹配得到类型之后，haskell还会进一步检查类型是否匹配。
+
+关于类型匹配，这里可以先简单实验一下，在ghci中输入如下：
+
+```
+*Main> (\x->x+1)1
+2
+*Main> 
+*Main> 
+*Main> (\x->x+1)[]
+
+<interactive>:37:1: error:
+    • Non type-variable argument in the constraint: Num [a]
+      (Use FlexibleContexts to permit this)
+    • When checking the inferred type
+        it :: forall a. Num [a] => [a]
+*Main> 
+```
+
+第一次输入一个lambda表达式紧跟一个数1，这时候ghci给出了我们想要的结果2。当第二次我们入[]时，报的错误有点意思。
+
+类型错误，这里有两点信息：
+
+- lambda表达式是匿名函数，所以函数参数的匹配似乎和函数名字没有直接关系。
+- 错误的直接原因显示为类型不匹配，其实haskell自己已经通过类型系统推导出了当前输入x的类型是Num [a], 而实际上运算+期待的参数是Num a，所以产生类型错误。
+
+类型匹配就是由haskell的类型推导系统完成的。
